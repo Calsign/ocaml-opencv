@@ -1,0 +1,10 @@
+PKG ctypes
+PKG ctypes.foreign
+PKG opencv
+PKG owl
+
+S .
+S gen
+
+B _build
+B _build/gen

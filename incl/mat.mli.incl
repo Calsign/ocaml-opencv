@@ -1,0 +1,5 @@
+
+module Mat : sig
+  type t = (int, int8_unsigned_elt, c_layout) Genarray.t
+  val create : unit -> t
+end

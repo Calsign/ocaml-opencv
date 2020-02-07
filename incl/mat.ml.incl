@@ -1,0 +1,40 @@
+
+module Mat = struct
+  type t = (int, int8_unsigned_elt, c_layout) Genarray.t
+
+  type cmat = unit ptr
+  let voidp = ptr void
+
+  let __mat_of_bigarray =
+    foreign "mat_of_bigarray" (int @-> ptr int @-> ptr int @-> returning voidp)
+
+  let cmat_of_bigarray (m : t) : cmat =
+    let num_dims = Genarray.num_dims m in
+    let dims = Genarray.dims m |> Array.to_list |> CArray.of_list int |> CArray.start in
+    let data = bigarray_start genarray m in
+    __mat_of_bigarray num_dims dims data
+
+  let __mat_num_dims = foreign "mat_num_dims" (voidp @-> returning int)
+  let __mat_dims = foreign "mat_dims" (voidp @-> returning (ptr int))
+  let __mat_data = foreign "mat_data" (voidp @-> returning (ptr int))
+
+  let bigarray_of_cmat (m : cmat) : t =
+    let num_dims = __mat_num_dims m in
+    let dims_arr = __mat_dims m in
+    let dims = CArray.from_ptr dims_arr num_dims |> CArray.to_list |> Array.of_list in
+    let data = __mat_data m in
+    bigarray_of_ptr genarray dims Int8_unsigned data
+
+  let __copy_cmat_bigarray =
+    foreign "copy_mat_bigarray" (voidp @-> voidp @-> returning void)
+
+  let copy_cmat_bigarray (m1 : cmat) (m2 : t) =
+    let root = Root.create m2 in
+    let res = __copy_cmat_bigarray m1 root
+    in Root.release root; res
+
+  let __create = foreign "create_mat" (void @-> returning voidp)
+
+  let create () =
+    __create () |> bigarray_of_cmat
+end

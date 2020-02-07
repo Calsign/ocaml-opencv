@@ -1,0 +1,6 @@
+name="opencv"
+description="OCaml bindings for OpenCV"
+version="0.1"
+requires="ctypes,ctypes.foreign"
+archive(byte)="opencv.cma"
+archive(native)="opencv.cmxa"

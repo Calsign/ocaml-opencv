@@ -1,0 +1,86 @@
+
+(* temporary *)
+
+module Cvdata = struct
+  type t =
+    | Mat of Mat.t
+    | MatList of Mat.t list
+    | Float of float
+    | BoolList of bool list
+    | Unknown of unit Ctypes.ptr
+
+  let of_mat mat =
+    Mat mat
+
+  let to_mat = function
+    | Mat mat -> mat
+    | _ -> failwith "to_mat"
+
+  let of_mat_list mats =
+    MatList mats
+
+  let to_mat_list = function
+    | MatList mats -> mats
+    | _ -> failwith "to_mat_list"
+
+  let of_float f =
+    Float f
+
+  let to_float = function
+    | Float f -> f
+    | _ -> failwith "to_float"
+
+  let of_bool_list lst =
+    BoolList lst
+
+  let to_bool_list = function
+    | BoolList lst -> lst
+    | _ -> failwith "to_bool_list"
+
+  (* internal functions *)
+
+  let __is_mat =
+    foreign "is_mat" (ptr void @-> returning bool)
+  let __is_vector_mat =
+    foreign "is_vector_mat" (ptr void @-> returning bool)
+  let __is_vector_bool =
+    foreign "is_vector_bool" (ptr void @-> returning bool)
+
+  let __mat_of_inputarray =
+    foreign "mat_of_inputarray" (ptr void @-> returning (ptr void))
+  let __mat_vector_of_inputarray =
+    foreign "mat_vector_of_inputarray" (ptr void @-> returning (ptr void))
+
+  let extract_cvdata (data : unit ptr) : t =
+    if __is_mat data then
+      begin
+        let cmat = __mat_of_inputarray data in
+        let mat = Mat.bigarray_of_cmat cmat in
+        Mat.copy_cmat_bigarray cmat mat;
+        of_mat mat
+      end
+    else failwith "unrecognized data"
+
+  let __input_array_of_mat =
+    foreign "inputarray_of_mat" (ptr void @-> returning (ptr void))
+  let __input_array_of_mat_vector =
+    foreign "inputarray_of_mat_vector" (ptr void @-> returning (ptr void))
+
+  let pack_cvdata (cvdata : t) : unit ptr =
+    match cvdata with
+    | Mat mat -> Mat.cmat_of_bigarray mat |> __input_array_of_mat
+    | MatList lst -> failwith "todo"
+    | Float f -> failwith "todo"
+    | BoolList lst -> failwith "todo"
+    | Unknown _ -> failwith "todo"
+
+  let pack_cvdata_post (cvdata : t) (arr : unit ptr) =
+    match cvdata with
+    | Mat mat ->
+      begin
+        let cmat = __mat_of_inputarray arr in
+        Mat.copy_cmat_bigarray cmat mat
+        (* Mat.copy_cmat_bigarray (allocate (ptr void) arr |> to_voidp) mat *)
+      end
+    | _ -> ()
+end
