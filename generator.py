@@ -73,10 +73,12 @@ class Parameter():
 
     def __str__(self):
         return '{} : {} = {} ; {}'.format(self.name, self.arg_type,
-                                          self.default_value, 'Output' if self.output else '')
+                                          self.default_value, 'Output'
+                                          if self.output else '')
 
 class Function():
-    def __init__(self, cpp_name, c_name, ocaml_name, return_type, parameters, c_params, docs):
+    def __init__(self, cpp_name, c_name, ocaml_name,
+                 return_type, parameters, c_params, docs):
         self.cpp_name = cpp_name
         self.c_name = c_name
         self.ocaml_name = ocaml_name
@@ -87,7 +89,19 @@ class Function():
 
     def __str__(self):
         return '{} : {}{}'.format(self.name, self.return_type,
-                                     '\n    '.join([''] + [str(param) for param in self.parameters]))
+                                  '\n    '.join([''] +
+                                                [str(param)
+                                                 for param in self.parameters]))
+
+class EnumConstr():
+    def __init__(self, cpp_name, ocaml_name, cpp_value, ocaml_value):
+        self.cpp_name = cpp_name
+        self.ocaml_name = ocaml_name
+        self.cpp_value = cpp_value
+        self.ocaml_value = ocaml_value
+
+    def __str__(self):
+        return self.ocaml_name
 
 class Enum():
     def __init__(self, name, values, docs):
@@ -99,7 +113,8 @@ class Enum():
         return '{} ; {}'.format(self.name, self.values)
 
 class Class():
-    def __init__(self, cpp_name, qualified_cpp_name, c_name, ocaml_name, ocaml_type, ctypes_name,
+    def __init__(self, cpp_name, qualified_cpp_name, c_name,
+                 ocaml_name, ocaml_type, ctypes_name,
                  ctypes_type, inherits, docs, public_type=False):
         self.cpp_name = cpp_name
         self.qualified_cpp_name = qualified_cpp_name
@@ -223,6 +238,7 @@ if __name__ == '__main__':
     parser = hdr_parser.CppHeaderParser(generate_umat_decls=generate_umat, generate_gpumat_decls=generate_umat)
     functions = []
     enums = []
+    enum_map = {}
     classes = {}
     overload_counts = {}
 
@@ -254,8 +270,19 @@ if __name__ == '__main__':
         add_struct(struct)
 
     def add_enum(decl):
-        values = [(arg[0].rsplit(' ', 1)[1], arg[1]) for arg in decl[3]]
+        def build_enum_constr(arg):
+            cpp_name = arg[0].rsplit(' ', 1)[1]
+            ocaml_name = cpp_name[cpp_name.rindex('.') + 1:]
+            cpp_value = arg[1]
+            try:
+                ocaml_value = str(int(cpp_value))
+            except ValueError:
+                ocaml_value = 'failwith "constant {} is broken"'.format(ocaml_name)
+            return EnumConstr(cpp_name, ocaml_name, cpp_value, ocaml_value)
+        values = list(map(build_enum_constr, decl[3]))
         enums.append(Enum(decl[0].rsplit(' ', 1)[1], values, decl[5]))
+        for constr in values:
+            enum_map[constr.ocaml_name] = constr
 
     def add_class(decl):
         full_class_name = decl[0].rsplit(' ', 1)[1]
@@ -461,8 +488,83 @@ if __name__ == '__main__':
         #                 .format(struct.ocaml2c_name(), struct.ocaml2c_name(), ctypes_type))
         opencv_ml.write()
 
-    for struct in structs:
-        write_struct(struct)
+    def write_enum(enum):
+        name = enum.name
+        if name.startswith('cv.'):
+            name = name[3:]
+        # catch all anonymous enums
+        if name in classes:
+            name = None
+        if name == 'cv':
+            name = None
+        if name is not None:
+            name = camel_case(name)
+            name = name.replace('.', '_')
+            if name.startswith('_'):
+                name = name[1:]
+
+        if name is not None:
+            opencv_ml.write('type {} = ['.format(name))
+            opencv_ml.indent()
+            opencv_ml.indent()
+
+            opencv_mli.write('type {} = ['.format(name))
+            opencv_mli.indent()
+            opencv_mli.indent()
+
+            for constr in enum.values:
+                opencv_ml.write('| `{}'.format(constr.ocaml_name))
+                opencv_mli.write('| `{}'.format(constr.ocaml_name))
+
+            opencv_ml.unindent()
+            opencv_ml.write(']')
+            opencv_ml.unindent()
+            opencv_ml.write()
+
+            opencv_mli.unindent()
+            opencv_mli.write(']')
+            opencv_mli.unindent()
+            opencv_mli.write()
+
+    def write_enum_converter():
+        opencv_mli.write('type cv_const = [')
+        opencv_mli.indent()
+        opencv_mli.indent()
+
+        opencv_ml.write('type cv_const = [')
+        opencv_ml.indent()
+        opencv_ml.indent()
+
+        for name in enum_map:
+            opencv_mli.write('| `{}'.format(name))
+            opencv_ml.write('| `{}'.format(name))
+
+        opencv_mli.unindent()
+        opencv_mli.write(']')
+        opencv_mli.unindent()
+        opencv_mli.write()
+
+        opencv_ml.unindent()
+        opencv_ml.write(']')
+        opencv_ml.unindent()
+        opencv_ml.write()
+
+        opencv_mli.write()
+        opencv_mli.write('val int_of_cv_const : cv_const -> int')
+        opencv_mli.write('val (~~) : cv_const -> int')
+        opencv_mli.write()
+
+        opencv_ml.write('let int_of_cv_const = function')
+        opencv_ml.indent()
+
+        for name, constr in enum_map.items():
+            opencv_ml.write('| `{} -> {}'.format(constr.ocaml_name, constr.ocaml_value))
+
+        #opencv_ml.write('| _ -> failwith "unrecognized cv constant"')
+        opencv_ml.unindent()
+        opencv_ml.write()
+        opencv_ml.write('let (~~) = int_of_cv_const')
+        opencv_ml.write()
 
     def write_function(function, enclosing_module=None, mli_only=False):
         if not type_manager.has_type(function.return_type):
@@ -612,11 +714,19 @@ if __name__ == '__main__':
     opencv_ml.write_all(read_file('incl/cvdata.ml.incl'))
     opencv_mli.write_all(read_file('incl/cvdata.mli.incl'))
 
+    for struct in structs:
+        write_struct(struct)
+
     for cls in classes.values():
         write_class(cls)
 
     for function in functions:
         write_function(function)
+
+    for enum in enums:
+        write_enum(enum)
+
+    write_enum_converter()
 
     opencv_h.unindent()
     opencv_h.write('}')
