@@ -560,7 +560,7 @@ if __name__ == '__main__':
         for name, constr in enum_map.items():
             opencv_ml.write('| `{} -> {}'.format(constr.ocaml_name, constr.ocaml_value))
 
-        #opencv_ml.write('| _ -> failwith "unrecognized cv constant"')
+        opencv_ml.write('| _ -> failwith "unrecognized cv constant"')
         opencv_ml.unindent()
         opencv_ml.write()
         opencv_ml.write('let (~~) = int_of_cv_const')
