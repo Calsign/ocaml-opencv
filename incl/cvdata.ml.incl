@@ -1,6 +1,4 @@
 
-(* temporary *)
-
 module Cvdata = struct
   type t =
     | Mat of Mat.t
@@ -80,7 +78,6 @@ module Cvdata = struct
       begin
         let cmat = __mat_of_inputarray arr in
         Mat.copy_cmat_bigarray cmat mat
-        (* Mat.copy_cmat_bigarray (allocate (ptr void) arr |> to_voidp) mat *)
       end
     | _ -> ()
 end
