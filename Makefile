@@ -59,7 +59,7 @@ $(INSTALLED_SHARED_LIB): $(BUILD)/$(SHARED_LIB)
 libinstall: $(BUILT_LIBS)
 	@echo "Installing ocamlfind library"
 	ocamlfind remove $(LIB_NAME)
-	ocamlfind install $(LIB_NAME) $(LIB_FILES) # -dll $(BUILD)/$(SHARED_LIB)
+	ocamlfind install $(LIB_NAME) $(LIB_FILES)
 
 sharedlib: $(BUILD)/$(SHARED_LIB)
 lib: $(BUILT_LIBS)
