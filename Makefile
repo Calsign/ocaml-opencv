@@ -7,12 +7,12 @@ GENERATOR_SRC=$(GENERATOR) hdr_parser.py type_manager.py incl/*
 CPP=$(GEN)/opencv.cpp glue.cpp
 HEADERS=$(GEN)/opencv.h glue.h
 SHARED_LIB=libocamlopencv.so
-SHARED_LIBS_INSTALL_DIR=/usr/local/lib/
+SHARED_LIBS_INSTALL_DIR=/usr/lib/
 INSTALLED_SHARED_LIB=$(SHARED_LIBS_INSTALL_DIR)/$(SHARED_LIB)
 
-MLS=$(GEN)/opencv glue
+MLS=$(GEN)/opencv
 FLAGS=-use-ocamlfind
-LFLAGS=-lflags -cclib
+LFLAGS=-lflags -locamlopencv
 
 LIB_NAME=opencv
 LIB_FILES=META $(BUILD)/$(GEN)/opencv.cmxa $(BUILD)/$(GEN)/*.cmx \
@@ -21,9 +21,8 @@ NATIVE_LIB=$(GEN)/opencv.cmxa
 BYTE_LIB=$(GEN)/opencv.cma
 BUILT_LIBS=$(BUILD)/$(NATIVE_LIB) $(BUILD)/$(BYTE_LIB)
 
-TESTS_DIR=tests
-TEST_LFLAGS=-lflags -cclib,-locamlopencv
-TEST_OUT=test.native
+TESTS=$(wildcard tests/*)
+TESTS_CLEAN=$(TESTS:=.clean)
 
 default: install
 
@@ -42,7 +41,8 @@ $(BUILD)/$(SHARED_LIB): $(CPP) $(HEADERS)
 
 $(BUILT_LIBS): $(BUILD)/$(SHARED_LIB) $(MLS:=.ml) $(MLS:=.mli)
 	@echo "Building opencv OCaml library"
-	ocamlbuild $(FLAGS) $(LFLAGS) $(NATIVE_LIB) $(BYTE_LIB)
+#	ocamlbuild $(FLAGS) $(LFLAGS) $(NATIVE_LIB) $(BYTE_LIB)
+	ocamlbuild $(FLAGS) $(NATIVE_LIB) $(BYTE_LIB)
 
 #$(BUILT_LIBS): $(BUILD)/$(SHARED_LIB) $(MLS:=.ml) $(MLS:=.mli)
 #	@echo "Building opencv OCaml library"
@@ -54,31 +54,35 @@ $(INSTALLED_SHARED_LIB): $(BUILD)/$(SHARED_LIB)
 	@echo "Installing shared library"
 	sudo rm -f $(INSTALLED_SHARED_LIB)
 	sudo cp $(BUILD)/$(SHARED_LIB) $(INSTALLED_SHARED_LIB)
-	@(which ldconfig > /dev/null && sudo ldconfig $(SHARED_LIBS_INSTALL_DIR)) || true
+#	@(which ldconfig > /dev/null && sudo ldconfig $(SHARED_LIBS_INSTALL_DIR)) || true
 
 libinstall: $(BUILT_LIBS)
 	@echo "Installing ocamlfind library"
 	ocamlfind remove $(LIB_NAME)
-	ocamlfind install $(LIB_NAME) $(LIB_FILES)
+	ocamlfind install $(LIB_NAME) $(LIB_FILES) # -dll $(BUILD)/$(SHARED_LIB)
 
 sharedlib: $(BUILD)/$(SHARED_LIB)
 lib: $(BUILT_LIBS)
 install: $(INSTALLED_SHARED_LIB) libinstall
 
-# not working because the opencv docs are poorly formatted for ocamldoc
 docs: $(BUILT_LIBS)
 	ocamlbuild $(FLAGS) -docflags -stars opencv.docdir/index.html
 
-# not currently using the ocamlfind library because it is broken for some reason
-test: $(INSTALLED_SHARED_LIB) libinstall
-	ocamlbuild $(FLAGS) -I $(GEN) $(TEST_LFLAGS) $(TEST_OUT)
-	./$(TEST_OUT)
+$(TESTS):
+	@echo "Running test: $@"
+	$(MAKE) -C $@ test
 
-clean:
+test: $(INSTALLED_SHARED_LIB) libinstall $(TESTS)
+
+$(TESTS_CLEAN):
+#	this is a stupid hack
+	$(MAKE) -C $(basename $@) clean
+
+clean: $(TESTS_CLEAN)
 	ocamlbuild -clean
 	rm -f $(BUILD)/$(SHARED_LIB)
 	rm -rf $(GEN)
-	sudo rm -f /usr/local/lib/$(SHARED_LIB)
+	sudo rm -f $(INSTALLED_SHARED_LIB)
 	ocamlfind remove $(LIB_NAME)
 
-.PHONY: default sharedlib lib libinstall install docs test clean
+.PHONY: default sharedlib lib libinstall install docs test clean $(TESTS) $(TESTS_CLEAN)

@@ -1,6 +1,7 @@
-_build/**
-gen/**
-__pycache__/**
+_build
+__pycache__
+gen
+*.docdir
 
 *.cmo
 *.cma

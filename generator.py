@@ -225,8 +225,31 @@ def convert_name(name):
     return (name, c_name, ocaml_name)
 
 def sanitize_docs(docs):
-    # don't terminate comments and don't start string literals
-    return docs.replace('*)', '* )').replace('{|', '{ |')
+    # a bunch of really jank things to make comments
+    # parse-able by ocamldoc
+    docs1 = re.sub(r'@code({.*?})?([\s\S]*?)@endcode', r'{[ \2 ]}', docs)
+    docs2 = re.sub(r'\\f[\[\$]([\s\S]*?)\\f[\]\$]', r'{% \1 %}', docs1)
+    docs3 = re.sub(r'\\f({.*?})([\s\S]*?)\\f}', r'{% \2 %}', docs2)
+    return docs3.replace('*)', '* )') \
+                .replace('{|', '{ |') \
+                .replace('[out]', 'return') \
+                .replace('@see', 'See also') \
+                .replace('@brief ', '') \
+                .replace('@overload', '') \
+                .replace('@internal', '') \
+                .replace('@endinternal', '') \
+                .replace('@cite', '') \
+                .replace('@note', 'Note: ') \
+                .replace('@ref', '') \
+                .replace('@sa', 'See also: ') \
+                .replace('@returns', '@return') \
+                .replace('@todo', 'TODO') \
+                .replace('@snippet', 'Snippet:') \
+                .replace('@include', 'Include:') \
+                .replace('@anchor', '') \
+                .replace('@ingroup', 'Group:') \
+                .replace('@paramreturn', '@param') \
+                .replace('@b', '')
 
 if __name__ == '__main__':
     dest = sys.argv[1]
@@ -429,17 +452,16 @@ if __name__ == '__main__':
     opencv_ml.write('open Foreign')
     opencv_ml.write('open Ctypes_static')
     opencv_ml.write()
-    opencv_ml.write('include Glue')
-    opencv_ml.write()
-    #opencv_ml.write('let lib_opencv = Dl.dlopen ~filename:"libocamlopencv.so" ~flags:[]')
-    #opencv_ml.write('let foreign = foreign ~from:lib_opencv')
+    opencv_ml.write('let lib_opencv = Dl.dlopen ~filename:"libocamlopencv.so" ~flags:[RTLD_NOW]')
+    opencv_ml.write('let foreign = foreign ~from:lib_opencv')
     opencv_ml.write()
 
     opencv_mli.write('open Bigarray')
     opencv_mli.write('open Ctypes')
     opencv_mli.write()
-    opencv_mli.write('open Glue')
-    opencv_mli.write()
+
+    opencv_ml.write_all(read_file('incl/vector.ml.incl'))
+    opencv_mli.write_all(read_file('incl/vector.mli.incl'))
 
     def write_struct(struct):
         decl_fields = '; '.join(['{} : {}'

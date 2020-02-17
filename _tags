@@ -1,2 +1,2 @@
 true: thread
-true: package(ctypes), package(ctypes.foreign), package(owl)
+true: package(ctypes), package(ctypes.foreign)
