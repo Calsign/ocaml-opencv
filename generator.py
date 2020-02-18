@@ -86,6 +86,7 @@ class Function():
         self.parameters = parameters
         self.c_params = c_params
         self.docs = docs
+        self.param_map = {param.name: param.ocaml_name for param in self.parameters}
 
     def __str__(self):
         return '{} : {}{}'.format(self.name, self.return_type,
@@ -163,7 +164,7 @@ masked_modules = ['Mat']
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
 
-def camel_case(name):
+def snake_case(name):
     return all_cap_re.sub(r'\1_\2', first_cap_re.sub(r'\1_\2', name)).lower()
 
 class FileWriter():
@@ -217,40 +218,59 @@ def convert_name(name):
         ocaml_name = name
 
     # convert to camel case
-    ocaml_name = camel_case(ocaml_name)
+    ocaml_name = snake_case(ocaml_name)
 
     if ocaml_name in ocaml_reserved:
         ocaml_name = ocaml_reserved[ocaml_name]
 
     return (name, c_name, ocaml_name)
 
-def sanitize_docs(docs):
+def sanitize_docs(docs, name=None, params=[], param_map={}):
+    if name is not None:
+        usage = 'Usage: [{} {}]' \
+            .format(name, ' '.join([param.ocaml_name for param in params]))
+    else:
+        usage = ''
+
     # a bunch of really jank things to make comments
     # parse-able by ocamldoc
     docs1 = re.sub(r'@code({.*?})?([\s\S]*?)@endcode', r'{[ \2 ]}', docs)
     docs2 = re.sub(r'\\f[\[\$]([\s\S]*?)\\f[\]\$]', r'{% \1 %}', docs1)
     docs3 = re.sub(r'\\f({.*?})([\s\S]*?)\\f}', r'{% \2 %}', docs2)
-    docs4 = re.sub(r'@param\s*([a-zA-Z0-9]*)', r'- Parameter [\1]:', docs3)
-    docs5 = re.sub(r'@return', r'- Returns', docs4.replace('@returns', '@return'))
-    return docs5.replace('*)', '* )') \
-                .replace('{|', '{ |') \
-                .replace('[out]', 'return') \
-                .replace('@see', 'See also') \
-                .replace('@brief ', '') \
-                .replace('@overload', '') \
-                .replace('@internal', '') \
-                .replace('@endinternal', '') \
-                .replace('@cite', '') \
-                .replace('@note', 'Note: ') \
-                .replace('@ref', '') \
-                .replace('@sa', 'See also: ') \
-                .replace('@todo', 'TODO') \
-                .replace('@snippet', 'Snippet:') \
-                .replace('@include', 'Include:') \
-                .replace('@anchor', '') \
-                .replace('@ingroup', 'Group:') \
-                .replace('@paramreturn', '@param') \
-                .replace('@b', '')
+    def param_sub(match):
+        cpp_name = match.group(2)
+        if cpp_name in param_map:
+            out_name = param_map[cpp_name]
+        else:
+            print('Warning: param {} not found found for function {}'.format(cpp_name, name))
+            out_name = cpp_name
+        return '- Parameter: [{}]:'.format(out_name)
+    docs4 = re.sub(r'@param(\[out\])?\s*([a-zA-Z0-9_]*)', param_sub, docs3)
+    docs5 = re.sub(r'@return', r'- Returns:', docs4.replace('@returns', '@return'))
+    docs6 = docs5.replace('*)', '* )') \
+                 .replace('{|', '{ |') \
+                 .replace('[out]', 'return') \
+                 .replace('@see', 'See also') \
+                 .replace('@brief ', '') \
+                 .replace('@overload', '') \
+                 .replace('@internal', '') \
+                 .replace('@endinternal', '') \
+                 .replace('@cite', '') \
+                 .replace('@note', 'Note: ') \
+                 .replace('@ref', '') \
+                 .replace('@sa', 'See also: ') \
+                 .replace('@todo', 'TODO') \
+                 .replace('@snippet', 'Snippet:') \
+                 .replace('@include', 'Include:') \
+                 .replace('@anchor', '') \
+                 .replace('@ingroup', 'Group:') \
+                 .replace('@paramreturn', '@param') \
+                 .replace('@b', '')
+
+    if len(docs6) > 0:
+        return usage + '\n\n' + docs6
+    else:
+        return usage
 
 if __name__ == '__main__':
     dest = sys.argv[1]
@@ -353,7 +373,7 @@ if __name__ == '__main__':
         name, c_name, ocaml_name = convert_name(decl[0])
 
         def sanitize_param(param):
-            param = param.lower()
+            param = snake_case(param)
             if param in ocaml_reserved:
                 param = ocaml_reserved[param]
             return param
@@ -521,7 +541,7 @@ if __name__ == '__main__':
         if name == 'cv':
             name = None
         if name is not None:
-            name = camel_case(name)
+            name = snake_case(name)
             name = name.replace('.', '_')
             if name.startswith('_'):
                 name = name[1:]
@@ -677,11 +697,12 @@ if __name__ == '__main__':
             type_manager.get_type(function.return_type).get_ocaml_type()))
         ocaml_sig = ' -> '.join(ocaml_sig_list)
 
-        if len(function.docs) > 0:
-            opencv_mli.write()
-            opencv_mli.write('(**')
-            opencv_mli.write(sanitize_docs(function.docs))
-            opencv_mli.write('*)')
+        opencv_mli.write()
+
+        opencv_mli.write('(**')
+        opencv_mli.write(sanitize_docs(function.docs, name=function.ocaml_name,
+                                       params=function.parameters, param_map=function.param_map))
+        opencv_mli.write('*)')
 
         opencv_mli.write('val {} : {}'.format(function.ocaml_name, ocaml_sig))
 
