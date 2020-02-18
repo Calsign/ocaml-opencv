@@ -230,7 +230,9 @@ def sanitize_docs(docs):
     docs1 = re.sub(r'@code({.*?})?([\s\S]*?)@endcode', r'{[ \2 ]}', docs)
     docs2 = re.sub(r'\\f[\[\$]([\s\S]*?)\\f[\]\$]', r'{% \1 %}', docs1)
     docs3 = re.sub(r'\\f({.*?})([\s\S]*?)\\f}', r'{% \2 %}', docs2)
-    return docs3.replace('*)', '* )') \
+    docs4 = re.sub(r'@param\s*([a-zA-Z0-9]*)', r'- Parameter [\1]:', docs3)
+    docs5 = re.sub(r'@return', r'- Returns', docs4.replace('@returns', '@return'))
+    return docs5.replace('*)', '* )') \
                 .replace('{|', '{ |') \
                 .replace('[out]', 'return') \
                 .replace('@see', 'See also') \
@@ -242,7 +244,6 @@ def sanitize_docs(docs):
                 .replace('@note', 'Note: ') \
                 .replace('@ref', '') \
                 .replace('@sa', 'See also: ') \
-                .replace('@returns', '@return') \
                 .replace('@todo', 'TODO') \
                 .replace('@snippet', 'Snippet:') \
                 .replace('@include', 'Include:') \
