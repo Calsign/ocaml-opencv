@@ -1,0 +1,9 @@
+
+module Scalar : sig
+  type t = { w : float; x : float; y : float; z : float }
+end
+
+val color1 : float -> Scalar.t
+val color2 : float -> float -> Scalar.t
+val color3 : float -> float -> float -> Scalar.t
+val color4 : float -> float -> float -> float -> Scalar.t

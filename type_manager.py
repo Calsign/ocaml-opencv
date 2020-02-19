@@ -44,6 +44,17 @@ class Type():
     def ocaml_to_ctypes(self, val):
         return Conv(val)
 
+    def must_pass_pointer(self):
+        """False iff this value can be passed on the stack.
+        (True iff it must be passed on the heap insead.)
+        """
+        return False
+
+    def is_pointer(self):
+        """True iff this type is a pointer.
+        """
+        return False
+
 class BaseType(Type):
     def __init__(self, cpp_type, c_type, ctypes_type, ctypes_value, ocaml_type):
         self.cpp_type = cpp_type
@@ -145,7 +156,10 @@ class GenericPointer(WrapperType):
 
     def ocaml_to_ctypes(self, val):
         return Conv('(allocate ({}) ({}))'.format(self.inner.get_ctypes_value(),
-                                                self.inner.ocaml_to_ctypes(val)))
+                                                  self.inner.ocaml_to_ctypes(val)))
+
+    def is_pointer(self):
+        return True
 
 class Pointer(GenericPointer):
     def __init__(self, inner):
@@ -213,9 +227,13 @@ class Vector(WrapperType):
                             self.inner.ocaml_to_ctypes('x'),
                             self.inner.get_ctypes_value()))
 
+    def must_pass_pointer(self):
+        return True
+
 class CustomType(BaseType):
     def __init__(self, cpp_type, c_type, ctypes_type, ctypes_value, ocaml_type,
-                 cpp2c='{}', c2cpp='{}', ctypes2ocaml='{}', ocaml2ctypes='{}', post=None):
+                 cpp2c='{}', c2cpp='{}', ctypes2ocaml='{}', ocaml2ctypes='{}', post=None,
+                 must_pointerize=False):
 
         super().__init__(cpp_type, c_type, ctypes_type, ctypes_value, ocaml_type)
         self.cpp2c = cpp2c
@@ -223,6 +241,7 @@ class CustomType(BaseType):
         self.ctypes2ocaml = ctypes2ocaml
         self.ocaml2ctypes = ocaml2ctypes
         self.post = post
+        self.must_pointerize = must_pointerize
 
     def cpp_to_c(self, val):
         return Conv(self.cpp2c.format(val))
@@ -236,6 +255,9 @@ class CustomType(BaseType):
     def ocaml_to_ctypes(self, val):
         post = None if self.post is None else self.post.format(val)
         return Conv(self.ocaml2ctypes.format(val), post=post)
+
+    def must_pass_pointer(self):
+        return self.must_pointerize
 
 class Mat(Type):
     def get_cpp_type(self):
@@ -260,7 +282,10 @@ class Mat(Type):
         return 'Mat.copy_cmat_bigarray {} {}'.format(original, converted)
 
     def ocaml_to_ctypes(self, val):
-        return Conv('(Mat.cmat_of_bigarray ({}))', post=self._post)
+        return Conv('(Mat.cmat_of_bigarray ({}))'.format(val), post=self._post)
+
+    def must_pass_pointer(self):
+        return True
 
 class Cvdata(Type):
     def __init__(self, cpp_type):
@@ -289,6 +314,34 @@ class Cvdata(Type):
 
     def ocaml_to_ctypes(self, val):
         return Conv('(Cvdata.pack_cvdata ({}))'.format(val), post=self._post)
+
+class Scalar(Type):
+    def get_cpp_type(self):
+        return 'cv::Scalar'
+
+    def get_c_type(self):
+        return 'cv::Scalar *'
+
+    def get_ctypes_type(self):
+        return 'unit ptr'
+
+    def get_ctypes_value(self):
+        return 'ptr void'
+
+    def get_ocaml_type(self):
+        return 'Scalar.t'
+
+    def c_to_cpp(self, val):
+        return Conv('*({})'.format(val))
+
+    def ctypes_to_ocaml(self, val):
+        return Conv('(Scalar.ctypes_to_ocaml ({}))'.format(val))
+
+    def ocaml_to_ctypes(self, val):
+        return Conv('(Scalar.ocaml_to_ctypes ({}))'.format(val))
+
+    def must_pass_pointer(self):
+        return True
 
 CONST = 'const'
 STD_VECTOR = 'std::vector<'
@@ -356,6 +409,7 @@ def add_types():
     add_type(String())
 
     add_type(Mat())
+    add_type(Scalar())
 
     add_type(Cvdata('InputArray'))
     add_type(Cvdata('OutputArray'))

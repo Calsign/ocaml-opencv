@@ -31,17 +31,22 @@ ocaml_reserved = {
     'val': 'cv_val',
     'method': 'cv_method',
     'type': 'cv_type',
+    'rec': 'rect',
 }
 
 class StructVal():
-    def __init__(self, val_type, c_name, ocaml_name=None):
-        self.c_name = c_name
-        self.ocaml_name = ocaml_name if ocaml_name is not None else c_name
-        self.val_type = val_type
+    def __init__(self, val_type_cpp_name, cpp_name, ocaml_name=None):
+        self.cpp_name = cpp_name
+        self.ocaml_name = ocaml_name if ocaml_name is not None else cpp_name
+        self.val_type_cpp_name = val_type_cpp_name
+
+    def get_val_type(self):
+        return type_manager.get_type(self.val_type_cpp_name)
 
 class Struct():
-    def __init__(self, c_name, ocaml_name, values):
-        self.c_name = c_name
+    def __init__(self, cpp_name, ocaml_name, values):
+        self.clean_cpp_name = cpp_name.replace('::', '').replace('<', '_').replace('>', '')
+        self.cpp_name = cpp_name
         self.ocaml_name = ocaml_name
         self.values = values
 
@@ -51,17 +56,32 @@ class Struct():
     def c2ocaml_name(self):
         return '{}_c2ocaml'.format(self.ocaml_name)
 
-    def ocaml_ctypes_name(self):
-        return '{}_type'.format(self.ocaml_name)
+    def c_constr_name(self):
+        return '{}_constr'.format(self.clean_cpp_name)
+
+    def c_getter_name(self, param):
+        return '{}_get_{}'.format(self.clean_cpp_name, param.cpp_name)
 
 structs = [
-    Struct('Point', 'point2i', [StructVal('int', 'x'), StructVal('int', 'y')]),
-    #Struct(['Point2f', 'Point2d'], 'point2f', [StructVal('float', 'x'), StructVal('float', 'y')]),
-    Struct('Point2f', 'point2f', [StructVal('float', 'x'), StructVal('float', 'y')]),
-    Struct('Rect', 'rect', [StructVal('int', 'x'), StructVal('int', 'y'),
-                            StructVal('int', 'width'), StructVal('int', 'height')]),
-    Struct('Size', 'size', [StructVal('int', 'width'), StructVal('int', 'height')]),
+    Struct('cv::Point_<int>', 'point2i', [StructVal('int', 'x'), StructVal('int', 'y')]),
+    Struct('cv::Point_<float>', 'point2f', [StructVal('float', 'x'), StructVal('float', 'y')]),
+    Struct('cv::Point_<double>', 'point2d', [StructVal('double', 'x'), StructVal('double', 'y')]),
+    Struct('cv::Rect_<int>', 'rect2i', [StructVal('int', 'x'), StructVal('int', 'y'),
+                                       StructVal('int', 'width'), StructVal('int', 'height')]),
+    Struct('cv::Size_<int>', 'size2i', [StructVal('int', 'width'), StructVal('int', 'height')]),
+    Struct('cv::Size_<float>', 'size2f', [StructVal('float', 'width'), StructVal('float', 'height')]),
+    Struct('cv::RotatedRect', 'rotated_rect', [StructVal('const Point_<float> &', 'center'),
+                                               StructVal('const Size_<float> &', 'size'),
+                                               StructVal('float', 'angle')]),
 ]
+
+struct_aliases = {
+    'Point': 'cv::Point_<int>',
+    'Point2d': 'cv::Point_<double>',
+    'Point2f': 'cv::Point_<float>',
+    'Rect': 'cv::Rect_<int>',
+    'Size': 'cv::Size_<int>',
+}
 
 class Parameter():
     def __init__(self, name, ocaml_name, arg_type, default_value, output):
@@ -145,20 +165,6 @@ def read_file(fname):
                 return line
         return map(clean, f.readlines())
 
-module_extras = {
-    #'Mat': (read_file('incl/mat.ml.incl'), read_file('incl/mat.mli.incl')),
-}
-
-class_customizations = {
-    #'Mat': {
-    #    'ocaml_type': '(int, int8_unsigned_elt, c_layout) Genarray.t',
-    #    'public_type': True,
-    #    'c2ocaml': '(Mat.bigarray_of_cmat ({}))',
-    #    'ocaml2c': '(Mat.cmat_of_bigarray ({}))',
-    #    'post_action': "Mat.copy_cmat_bigarray {0}' {0}",
-    #},
-}
-
 masked_modules = ['Mat']
 
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
@@ -239,6 +245,8 @@ def sanitize_docs(docs, name=None, params=[], param_map={}):
     docs3 = re.sub(r'\\f({.*?})([\s\S]*?)\\f}', r'{% \2 %}', docs2)
     def param_sub(match):
         cpp_name = match.group(2)
+        if cpp_name in ocaml_reserved:
+            cpp_name = ocaml_reserved[cpp_name]
         if cpp_name in param_map:
             out_name = param_map[cpp_name]
         else:
@@ -247,7 +255,8 @@ def sanitize_docs(docs, name=None, params=[], param_map={}):
         return '- Parameter: [{}]:'.format(out_name)
     docs4 = re.sub(r'@param(\[out\])?\s*([a-zA-Z0-9_]*)', param_sub, docs3)
     docs5 = re.sub(r'@return', r'- Returns:', docs4.replace('@returns', '@return'))
-    docs6 = docs5.replace('*)', '* )') \
+    docs6 = re.sub(r'`(.*)`', r'[\1]', docs5)
+    docs7 = docs6.replace('*)', '* )') \
                  .replace('{|', '{ |') \
                  .replace('[out]', 'return') \
                  .replace('@see', 'See also') \
@@ -267,8 +276,8 @@ def sanitize_docs(docs, name=None, params=[], param_map={}):
                  .replace('@paramreturn', '@param') \
                  .replace('@b', '')
 
-    if len(docs6) > 0:
-        return usage + '\n\n' + docs6
+    if len(docs7) > 0:
+        return usage + '\n\n' + docs7
     else:
         return usage
 
@@ -287,31 +296,17 @@ if __name__ == '__main__':
     overload_counts = {}
 
     def add_struct(struct):
-        def add_c_name(c_name):
-            qual_name = 'cv::' + c_name
-            c2ocaml = '({} ({{}}))'.format(struct.c2ocaml_name())
-            ocaml2c = '({} ({{}}))'.format(struct.ocaml2c_name())
-            # c2ocaml_ptr = '({} (!@ ({{}}))))'.format(struct.c2ocaml_name())
-            # ocaml2c_ptr = '(allocate {} ({} ({{}})))'.format(struct.ocaml_ctypes_name(), struct.ocaml2c_name())
-
-            # type_map[c_name] = TypeConversion(qual_name, qual_name, struct.ocaml_name,
-            #                                   struct.ocaml_ctypes_name(), c2ocaml=c2ocaml, ocaml2c=ocaml2c)
-            # type_map[c_name + '*'] = TypeConversion(qual_name + '*', qual_name + '*',
-            #                                         struct.ocaml_name, 'ptr {}'.format(struct.ocaml_ctypes_name()),
-            #                                         c2ocaml=c2ocaml_ptr, ocaml2c=ocaml2c_ptr)
-            type_manager.add_type(type_manager.CustomType(
-                qual_name, qual_name, struct.ocaml_ctypes_name(),
-                struct.ocaml_ctypes_name(), struct.ocaml_name,
-                ctypes2ocaml=c2ocaml, ocaml2ctypes=ocaml2c), silent_on_exists=True)
-
-        if isinstance(struct.c_name, list):
-            for c_name in struct.c_name:
-                add_c_name(c_name)
-        else:
-            add_c_name(struct.c_name)
+        type_manager.add_type(type_manager.CustomType(
+            struct.cpp_name, struct.cpp_name, 'unit ptr', 'ptr void', struct.ocaml_name,
+            ctypes2ocaml='({} ({{}}))'.format(struct.c2ocaml_name()),
+            ocaml2ctypes='({} ({{}}))'.format(struct.ocaml2c_name()),
+            must_pointerize=True))
 
     for struct in structs:
         add_struct(struct)
+
+    for alias, struct_name in struct_aliases.items():
+        type_manager.add_type_alias(struct_name, alias)
 
     def add_enum(decl):
         def build_enum_constr(arg):
@@ -342,7 +337,6 @@ if __name__ == '__main__':
         if ocaml_name in masked_modules:
             return
 
-        # these can be modified per-class with class_customizations
         params = {
             'ctypes_type': 'ptr void',
             'ocaml_type': 'unit ptr',
@@ -351,9 +345,6 @@ if __name__ == '__main__':
             'ocaml2c': '{}',
             'post_action': None,
         }
-
-        if ocaml_name in class_customizations:
-            params.update(class_customizations[ocaml_name])
 
         if full_class_name.startswith('cv.'):
             full_class_name = full_class_name[3:]
@@ -484,11 +475,12 @@ if __name__ == '__main__':
     opencv_ml.write_all(read_file('incl/vector.ml.incl'))
     opencv_mli.write_all(read_file('incl/vector.mli.incl'))
 
+    opencv_ml.write_all(read_file('incl/scalar.ml.incl'))
+    opencv_mli.write_all(read_file('incl/scalar.mli.incl'))
+
     def write_struct(struct):
         decl_fields = '; '.join(['{} : {}'
-                                 .format(val.ocaml_name,
-                                         type_manager.get_type(val.val_type)
-                                         .get_ctypes_type())
+                                 .format(val.ocaml_name, val.get_val_type().get_ocaml_type())
                                  for val in struct.values])
         type_decl = 'type {} = {{ {} }}'.format(struct.ocaml_name, decl_fields)
 
@@ -496,40 +488,55 @@ if __name__ == '__main__':
         opencv_mli.write()
 
         opencv_ml.write(type_decl)
-        opencv_ml.write('let {} : {} structure typ = structure "{}"'
-                        .format(struct.ocaml_ctypes_name(), struct.ocaml_name, struct.c_name))
+        opencv_ml.write()
+
+        constr_ctypes = ' @-> '.join([field.get_val_type().get_ctypes_value() for field in struct.values])
+        opencv_ml.write('let _{} = foreign "{}" ({} @-> returning (ptr void))'
+                        .format(struct.c_constr_name(), struct.c_constr_name(), constr_ctypes))
         for field in struct.values:
-            opencv_ml.write('let {}_{} = field {} "{}" {}'
-                            .format(struct.ocaml_name, field.ocaml_name,
-                                    struct.ocaml_ctypes_name(), field.c_name,
-                                    type_manager.get_type(field.val_type).get_ctypes_type()))
-        opencv_ml.write('let () = seal {}'.format(struct.ocaml_ctypes_name()))
-        opencv_ml.write('let {} x : {} ='.format(struct.c2ocaml_name(), struct.ocaml_name))
+            opencv_ml.write('let _{} = foreign "{}" (ptr void @-> returning ({}))'
+                            .format(struct.c_getter_name(field), struct.c_getter_name(field),
+                                    field.get_val_type().get_ctypes_value()))
+
+        ocaml_params = ' '.join([field.get_val_type().ocaml_to_ctypes(
+            's.{}'.format(field.ocaml_name)) for field in struct.values])
+        opencv_ml.write('let {} s = _{} {}'.format(struct.ocaml2c_name(), struct.c_constr_name(), ocaml_params))
+
+        opencv_ml.write('let {} s ='.format(struct.c2ocaml_name()))
         opencv_ml.indent()
         opencv_ml.write('{')
         opencv_ml.indent()
         for field in struct.values:
-            opencv_ml.write('{} = getf x {}_{};'
-                            .format(field.ocaml_name, struct.ocaml_name, field.ocaml_name))
+            opencv_ml.write('{} = {};'
+                            .format(field.ocaml_name, field.get_val_type().ctypes_to_ocaml(
+                                '_{} s'.format(struct.c_getter_name(field)))))
         opencv_ml.unindent()
         opencv_ml.write('}')
         opencv_ml.unindent()
-        opencv_ml.write('let {} x : {} structure ='
-                        .format(struct.ocaml2c_name(), struct.ocaml_name))
-        opencv_ml.indent()
-        opencv_ml.write('let y = make {} in'.format(struct.ocaml_ctypes_name()))
-        for field in struct.values:
-            opencv_ml.write('setf y {}_{} x.{};'
-                            .format(struct.ocaml_name, field.ocaml_name, field.ocaml_name))
-        opencv_ml.write('y')
-        opencv_ml.unindent()
 
-        # ctypes_type = ' @-> '.join([type_map[field.val_type].ctypes_type
-        #                             for field in struct.values])
-        # ctypes_type += ' @-> returning (ptr void)'
-        # opencv_ml.write('let {} = foreign "{}" ({})'
-        #                 .format(struct.ocaml2c_name(), struct.ocaml2c_name(), ctypes_type))
         opencv_ml.write()
+
+        cpp_params = ', '.join(['{} {}'.format(field.get_val_type().get_cpp_type(),
+                                               field.cpp_name) for field in struct.values])
+        opencv_h.write('{} *{}({});'.format(struct.cpp_name, struct.c_constr_name(), cpp_params))
+
+        opencv_cpp.write('{} *{}({}) {{'.format(struct.cpp_name, struct.c_constr_name(), cpp_params))
+        opencv_cpp.indent()
+        opencv_cpp.write('return new {}({});'
+                         .format(struct.cpp_name,
+                                 ', '.join([field.cpp_name for field in struct.values])))
+        opencv_cpp.unindent()
+        opencv_cpp.write('}')
+
+        for field in struct.values:
+            opencv_h.write('{} {}({} *s);'.format(field.get_val_type().get_cpp_type(),
+                                                  struct.c_getter_name(field), struct.cpp_name))
+            opencv_cpp.write('{} {}({} *s) {{'.format(field.get_val_type().get_cpp_type(),
+                                                     struct.c_getter_name(field), struct.cpp_name))
+            opencv_cpp.indent()
+            opencv_cpp.write('return s->{};'.format(field.cpp_name))
+            opencv_cpp.unindent()
+            opencv_cpp.write('}')
 
     def write_enum(enum):
         name = enum.name
@@ -625,26 +632,43 @@ if __name__ == '__main__':
             #    and name.startswith(enclosing_module + '.') else name
             return name.replace('{}.t'.format(enclosing_module), 't')
 
-        params_h = ', '.join(['{} {}'
-                              .format(type_manager.get_type(param.arg_type).get_c_type(),
-                                      param.name) for param in function.parameters])
-        stub = '{} {}({})'.format(type_manager.get_type(function.return_type).get_cpp_type(),
+        def pointerize_type(typ, cpp=False):
+            fmt = '{} *' if typ.must_pass_pointer() and not typ.is_pointer() else '{}'
+            return fmt.format(typ.get_cpp_type() if cpp else typ.get_c_type())
+
+        params_h = ', '.join(
+            ['{} {}'.format(pointerize_type(type_manager.get_type(param.arg_type)),
+                            param.name) for param in function.parameters])
+        stub = '{} {}({})'.format(pointerize_type(type_manager
+                                                  .get_type(function.return_type), cpp=True),
                                   function.c_name, params_h)
 
         if not mli_only:
             opencv_h.write('{};'.format(stub))
 
-        params_cpp = ', '.join([type_manager.get_type(param.arg_type)
-                                .c_to_cpp(param.name) for param in function.c_params])
+        def pointerize_value(typ, val):
+            fmt = '*({})' if typ.must_pass_pointer() and not typ.is_pointer() else '{}'
+            return fmt.format(typ.c_to_cpp(val))
+
+        def depointerize_value(typ, val):
+            pass
+
+        params_cpp = ', '.join([pointerize_value(type_manager.get_type(param.arg_type),
+                                                 param.name) for param in function.c_params])
         value = '{}({})'.format(function.cpp_name, params_cpp)
-        return_or_not = 'return ' if function.return_type != 'void' else ''
+        ret_type = type_manager.get_type(function.return_type)
+
+        if function.return_type == 'void':
+            invoke_fmt = '{};'
+        elif ret_type.must_pass_pointer() and not ret_type.is_pointer():
+            invoke_fmt = 'return new {} ({{}});'.format(ret_type.get_cpp_type())
+        else:
+            invoke_fmt = 'return {};'
 
         if not mli_only:
             opencv_cpp.write('{} {{'.format(stub))
             opencv_cpp.indent()
-            opencv_cpp.write('{}{};'.format(return_or_not,
-                                            type_manager.get_type(function.return_type)
-                                            .cpp_to_c(value)))
+            opencv_cpp.write(invoke_fmt.format(ret_type.cpp_to_c(value)))
             opencv_cpp.unindent()
             opencv_cpp.write('}')
 
@@ -738,10 +762,6 @@ if __name__ == '__main__':
                 opencv_mli.write('type t = {}'.format(cls.ocaml_type))
             else:
                 opencv_mli.write('type t')
-
-        if cls.ocaml_name in module_extras:
-            opencv_ml.write_all(module_extras[cls.ocaml_name][0])
-            opencv_mli.write_all(module_extras[cls.ocaml_name][1])
 
         for function in cls.functions:
             write_function(function, enclosing_module=cls.ocaml_name)

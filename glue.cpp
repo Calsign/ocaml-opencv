@@ -152,4 +152,21 @@ extern "C" {
         const cv::_InputArray *arr = new cv::_InputArray(mats);
         return *arr;
     }
+
+    cv::Scalar *build_scalar(double w, double x, double y, double z) {
+        return new cv::Scalar(w, x, y, z);
+    }
+
+    double scalar_w(cv::Scalar &scalar) {
+        return scalar[0];
+    }
+    double scalar_x(cv::Scalar &scalar) {
+        return scalar[1];
+    }
+    double scalar_y(cv::Scalar &scalar) {
+        return scalar[2];
+    }
+    double scalar_z(cv::Scalar &scalar) {
+        return scalar[3];
+    }
 }

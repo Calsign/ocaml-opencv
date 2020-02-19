@@ -32,4 +32,10 @@ extern "C" {
 
     cv::InputArray inputarray_of_mat(const cv::Mat &mat);
     cv::InputArray inputarray_of_mat_vector(const std::vector<cv::Mat> &mats);
+
+    cv::Scalar *build_scalar(double w, double x, double y, double z);
+    double scalar_w(cv::Scalar &scalar);
+    double scalar_x(cv::Scalar &scalar);
+    double scalar_y(cv::Scalar &scalar);
+    double scalar_z(cv::Scalar &scalar);
 }
