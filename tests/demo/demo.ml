@@ -14,12 +14,12 @@ let () =
     let _ = extract_channel (Cvdata.Mat mat) (Cvdata.Mat chan) 0 in
     let _ = threshold (Cvdata.Mat chan) (Cvdata.Mat threshed) 100. 200. ~~`THRESH_BINARY in
     let rect = bounding_rect (Cvdata.Mat threshed) in
-    rectangle1 (Cvdata.Mat chan) rect (color4 255. 255. 255. 255.) 2 ~~`FILLED 0;
+    rectangle1 (Cvdata.Mat chan) rect (color1 255.) 2 ~~`FILLED 0;
     let total = sum (Cvdata.Mat chan) in
     print_endline (string_of_float total.w);
     let b = 30 in
     let tiled = Owl.Dense.Ndarray.Generic.concatenate ~axis:1 [|chan; threshed|] in
-    let padded = Owl.Dense.Ndarray.Generic.pad ~v:0 [[b; b]; [b; b]; [0; 0]] tiled in
+    let padded = Owl.Dense.Ndarray.Generic.pad ~v:127 [[b; b]; [b; b]; [0; 0]] tiled in
     imshow "foobar" (Cvdata.Mat padded);
     let _ = wait_key 0 in
     loop ()
