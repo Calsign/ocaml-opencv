@@ -292,6 +292,7 @@ if __name__ == '__main__':
     functions = []
     enums = []
     enum_map = {}
+    defined_enum_consts = set()
     classes = {}
     overload_counts = {}
 
@@ -466,6 +467,7 @@ if __name__ == '__main__':
     opencv_ml.write()
     opencv_ml.write('let lib_opencv = Dl.dlopen ~filename:"libocamlopencv.so" ~flags:[RTLD_NOW]')
     opencv_ml.write('let foreign = foreign ~from:lib_opencv')
+    opencv_ml.write('let foreign_value = foreign_value ~from:lib_opencv')
     opencv_ml.write()
 
     opencv_mli.write('open Bigarray')
@@ -576,6 +578,14 @@ if __name__ == '__main__':
             opencv_mli.unindent()
             opencv_mli.write()
 
+        for constr in enum.values:
+            if constr.ocaml_name not in defined_enum_consts and not constr.cpp_name.startswith('cv.Param'):
+                defined_enum_consts.add(constr.ocaml_name)
+                opencv_h.write('int __{} = (int) {};'
+                               .format(constr.ocaml_name, constr.cpp_name.replace('.', '::')))
+                opencv_ml.write('let __{} = foreign_value "__{}" int |> (!@)'
+                                .format(constr.ocaml_name, constr.ocaml_name))
+
     def write_enum_converter():
         opencv_mli.write('type cv_const = [')
         opencv_mli.indent()
@@ -608,7 +618,11 @@ if __name__ == '__main__':
         opencv_ml.indent()
 
         for name, constr in enum_map.items():
-            opencv_ml.write('| `{} -> {}'.format(constr.ocaml_name, constr.ocaml_value))
+            if constr.ocaml_name in defined_enum_consts:
+                opencv_ml.write('| `{} -> __{}'.format(constr.ocaml_name, constr.ocaml_name))
+            else:
+                opencv_ml.write('| `{} -> failwith "constant `{} unsupported"'
+                                .format(constr.ocaml_name, constr.ocaml_name))
 
         opencv_ml.write('| _ -> failwith "unrecognized cv constant"')
         opencv_ml.unindent()
