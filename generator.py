@@ -586,6 +586,9 @@ if __name__ == '__main__':
                 opencv_ml.write('let __{} = foreign_value "__{}" int |> (!@)'
                                 .format(constr.ocaml_name, constr.ocaml_name))
 
+        opencv_h.write()
+        opencv_ml.write()
+
     def write_enum_converter():
         opencv_mli.write('type cv_const = [')
         opencv_mli.indent()
@@ -609,11 +612,6 @@ if __name__ == '__main__':
         opencv_ml.unindent()
         opencv_ml.write()
 
-        opencv_mli.write()
-        opencv_mli.write('val int_of_cv_const : cv_const -> int')
-        opencv_mli.write('val (~~) : cv_const -> int')
-        opencv_mli.write()
-
         opencv_ml.write('let int_of_cv_const = function')
         opencv_ml.indent()
 
@@ -626,8 +624,6 @@ if __name__ == '__main__':
 
         opencv_ml.write('| _ -> failwith "unrecognized cv constant"')
         opencv_ml.unindent()
-        opencv_ml.write()
-        opencv_ml.write('let (~~) = int_of_cv_const')
         opencv_ml.write()
 
     def write_function(function, enclosing_module=None, mli_only=False):
@@ -801,10 +797,32 @@ if __name__ == '__main__':
     for function in functions:
         write_function(function)
 
+    opencv_mli.write()
+    opencv_mli.write('module Cvconst : sig')
+    opencv_mli.indent()
+
+    opencv_ml.write()
+    opencv_ml.write('module Cvconst = struct')
+    opencv_ml.indent()
+
     for enum in enums:
         write_enum(enum)
 
     write_enum_converter()
+
+    opencv_mli.unindent()
+    opencv_mli.write('end')
+
+    opencv_ml.unindent()
+    opencv_ml.write('end')
+
+    opencv_ml.write()
+    opencv_ml.write('let (~~) = Cvconst.int_of_cv_const')
+    opencv_ml.write()
+
+    opencv_mli.write()
+    opencv_mli.write('val (~~) : Cvconst.cv_const -> int')
+    opencv_mli.write()
 
     opencv_h.unindent()
     opencv_h.write('}')
