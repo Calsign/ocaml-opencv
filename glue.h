@@ -24,7 +24,7 @@ extern "C" {
     void *vector_data(std::vector<char> v);
     int vector_length(std::vector<char> v);
 
-    std::vector<char> create_vector(char &arr, int length, int item_size);
+    std::vector<char> *create_vector(char &arr, int length, int item_size);
 
     bool is_mat(cv::InputArray cvdata);
     bool is_vector_mat(cv::InputArray cvdata);

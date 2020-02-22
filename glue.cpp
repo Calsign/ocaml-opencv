@@ -130,8 +130,8 @@ extern "C" {
         return v.size();
     }
 
-    std::vector<char> create_vector(char &arr, int length, int item_size) {
-        return std::vector<char>(length * item_size, arr);
+    std::vector<char> *create_vector(char &arr, int length, int item_size) {
+        return new std::vector<char>(length * item_size, arr);
     }
 
     bool is_mat(cv::InputArray cvdata) {
