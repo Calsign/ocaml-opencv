@@ -13,6 +13,7 @@ let () =
     let _ = Video_capture.read1 vid (Cvdata.Mat mat) in
     let _ = cvt_color (Cvdata.Mat mat) (Cvdata.Mat mat) ~~`COLOR_BGR2Lab 0 in
     let _ = extract_channel (Cvdata.Mat mat) (Cvdata.Mat chan) 0 in
+    let _ = gaussian_blur (Cvdata.Mat chan) (Cvdata.Mat chan) {width=21; height=21} 10. 10. 0 in
     let _ = threshold (Cvdata.Mat chan) (Cvdata.Mat threshed) 100. 200. ~~`THRESH_BINARY in
     let rect = bounding_rect (Cvdata.Mat threshed) in
     rectangle1 (Cvdata.Mat chan) rect (color1 255.) 2 ~~`FILLED 0;
