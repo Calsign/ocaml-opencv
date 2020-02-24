@@ -16,6 +16,10 @@ extern "C" {
         return new cv::Mat(0, 0, CV_8UC3);
     }
 
+    void mat_copy(cv::Mat *src, cv::Mat *dst) {
+        src->copyTo(*dst);
+    }
+
     // cv::Mat *mat_of_bigarray(bigarray *arr) {
     //     // The last dimension is for different channels.
     //     // OpenCV treats this separately from other dimensions,

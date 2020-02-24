@@ -34,7 +34,59 @@ module Mat = struct
     in Root.release root; res
 
   let __create = foreign "create_mat" (void @-> returning voidp)
+  let __copy = foreign "mat_copy" (voidp @-> voidp @-> returning void)
+
+  let recycling = ref []
+
+  let finaliser value =
+    recycling := value :: !recycling
 
   let create () =
-    __create () |> bigarray_of_cmat
+    (*
+     * Instead of allowing mats to be freed, we keep a pool
+     * of "recyclable" mats for re-use by future invocations
+     * of Mat.create. This conveniently solves a couple of
+     * problems at once.
+     *
+     * First, many programs that create lots of mats probably do
+     * so as part of a loop, such as reading from a video file.
+     * It is a bit inefficient to destroy and recreate the mat
+     * every iteration. Using a mat pool should give us
+     * significant reductions in memory allocation and therefore
+     * better performance.
+     *
+     * Second, OpenCV has its own mechanism for garbage collection
+     * of mats that interferes with OCaml's garbage collector.
+     * There were significant issues with double-free errors.
+     * This solution solves the problem by preventing the OCaml
+     * GC from ever trying to free a mat.
+     *
+     * We only add a mat to the recycling list when the OCaml GC
+     * tries to run, which ensures that the OCaml GC never frees
+     * the mat and that the mat is no longer in scope in the
+     * program (the GC only runs on unreachable values).
+     *
+     * This approach feels really dirty but it's almost too good
+     * to be true so we are going to roll with it for now.
+     *)
+    match !recycling with
+    | [] ->
+      begin
+        let mat = __create () |> bigarray_of_cmat in
+        Gc.finalise finaliser mat;
+        mat
+      end
+    | hd :: tl ->
+      begin
+        recycling := tl;
+        Gc.finalise finaliser hd;
+        hd
+      end
+
+  let clone mat =
+    let mat' = create () in
+    let cmat' = cmat_of_bigarray mat' in
+    __copy (cmat_of_bigarray mat) cmat';
+    copy_cmat_bigarray cmat' mat';
+    mat'
 end

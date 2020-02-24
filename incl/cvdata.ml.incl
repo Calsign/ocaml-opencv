@@ -80,4 +80,8 @@ module Cvdata = struct
         Mat.copy_cmat_bigarray cmat mat
       end
     | _ -> ()
+
+  let clone = function
+    | Mat mat -> Mat (Mat.clone mat)
+    | _ -> failwith "clone non-mat"
 end

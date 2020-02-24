@@ -55,6 +55,26 @@ class Type():
         """
         return False
 
+    def has_default_value(self):
+        return self.get_default_value() != None
+
+    def get_default_value(self):
+        """An OCaml string default value for arguments of this type
+        iff it is optional, otherwise None.
+        """
+        return None
+
+    def is_return_value(self):
+        """True iff parameters of this type should be returned.
+        """
+        return False
+
+    def is_cloneable(self):
+        """True iff parameters of this type should be optionally cloned
+        before being returned (making pure functions out of impure functions).
+        """
+        return False
+
 class BaseType(Type):
     def __init__(self, cpp_type, c_type, ctypes_type, ctypes_value, ocaml_type):
         self.cpp_type = cpp_type
@@ -288,8 +308,11 @@ class Mat(Type):
         return True
 
 class Cvdata(Type):
-    def __init__(self, cpp_type):
+    def __init__(self, cpp_type, optional=False, ret=False, cloneable=False):
         self.cpp_type = cpp_type
+        self.optional = optional
+        self.ret = ret
+        self.cloneable = cloneable
 
     def get_cpp_type(self):
         return 'cv::{}'.format(self.cpp_type)
@@ -314,6 +337,15 @@ class Cvdata(Type):
 
     def ocaml_to_ctypes(self, val):
         return Conv('(Cvdata.pack_cvdata ({}))'.format(val), post=self._post)
+
+    def get_default_value(self):
+        return '(Cvdata.Mat (Mat.create ()))' if self.optional else None
+
+    def is_return_value(self):
+        return self.ret
+
+    def is_cloneable(self):
+        return self.cloneable
 
 class Scalar(Type):
     def get_cpp_type(self):
@@ -342,6 +374,13 @@ class Scalar(Type):
 
     def must_pass_pointer(self):
         return True
+
+class RecycleFlag(BaseType):
+    def __init__(self):
+        super().__init__('__recycle_flag', 'bool', 'bool', 'bool', 'bool')
+
+    def get_default_value(self):
+        return 'false'
 
 CONST = 'const'
 STD_VECTOR = 'std::vector<'
@@ -412,10 +451,12 @@ def add_types():
     add_type(Scalar())
 
     add_type(Cvdata('InputArray'))
-    add_type(Cvdata('OutputArray'))
-    add_type(Cvdata('InputOutputArray'))
+    add_type(Cvdata('OutputArray', optional=True, ret=True))
+    add_type(Cvdata('InputOutputArray', ret=True, cloneable=True))
     add_type(Cvdata('InputArrayOfArrays'))
-    add_type(Cvdata('OutputArrayOfArrays'))
-    add_type(Cvdata('InputOutputArrayOfArrays'))
+    add_type(Cvdata('OutputArrayOfArrays', optional=True, ret=True))
+    add_type(Cvdata('InputOutputArrayOfArrays', ret=True, cloneable=True))
+
+    add_type(RecycleFlag())
 
 add_types()

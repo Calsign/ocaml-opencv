@@ -7,6 +7,7 @@
 
 extern "C" {
     cv::Mat *create_mat();
+    void mat_copy(cv::Mat *src, cv::Mat *dst);
 
     typedef struct caml_ba_array bigarray;
 

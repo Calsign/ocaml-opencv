@@ -233,8 +233,12 @@ def convert_name(name):
 
 def sanitize_docs(docs, name=None, params=[], param_map={}):
     if name is not None:
+        def get_param_name(param):
+            fmt = '?{}' if type_manager.get_type(param.arg_type).has_default_value() else '{}'
+            return fmt.format(param.ocaml_name)
+        param_names = list(map(get_param_name, params))
         usage = 'Usage: [{} {}]' \
-            .format(name, ' '.join([param.ocaml_name for param in params]))
+            .format(name, ' '.join(param_names))
     else:
         usage = ''
 
@@ -255,7 +259,7 @@ def sanitize_docs(docs, name=None, params=[], param_map={}):
         return '- Parameter: [{}]:'.format(out_name)
     docs4 = re.sub(r'@param(\[out\])?\s*([a-zA-Z0-9_]*)', param_sub, docs3)
     docs5 = re.sub(r'@return', r'- Returns:', docs4.replace('@returns', '@return'))
-    docs6 = re.sub(r'`(.*)`', r'[\1]', docs5)
+    docs6 = re.sub(r'`(.*?)`', r'[\1]', docs5)
     docs7 = docs6.replace('*)', '* )') \
                  .replace('{|', '{ |') \
                  .replace('[out]', 'return') \
@@ -682,10 +686,33 @@ if __name__ == '__main__':
             opencv_cpp.unindent()
             opencv_cpp.write('}')
 
-        param_names = [param.ocaml_name for param in function.parameters]
+        def get_param_name(param):
+            typ = type_manager.get_type(param.arg_type)
+            if typ.has_default_value():
+                return '?({} = {})'.format(param.ocaml_name, typ.get_default_value())
+            else:
+                return param.ocaml_name
+
+        # move (float) optional params to the front to prevent un-erasable optional arguments
+        # (basically optional arguments can't be the last parameter in OCaml)
+        floated_params = \
+            list(sorted(function.parameters, key=lambda param:
+                        not type_manager.get_type(param.arg_type).has_default_value()))
+
+        # add extra parameters for optionally disabling cloning of cloneable params
+        inserted_param_count = 0
+        for i, param in enumerate(floated_params.copy()):
+            if type_manager.get_type(param.arg_type).is_cloneable():
+                floated_params.insert(i + inserted_param_count,
+                                      Parameter('', '{}_recycle'
+                                                .format(param.ocaml_name ),
+                                                '__recycle_flag', None, False))
+                inserted_param_count += 1
+
+        floated_param_names = list(map(get_param_name, floated_params))
         param_names_prime = ["{}'".format(param.ocaml_name) for param in function.parameters]
-        if len(param_names) == 0:
-            param_names.append('()')
+        if len(floated_param_names) == 0:
+            floated_param_names.append('()')
             param_names_prime.append('()')
 
         ctypes_sig_list = [type_manager.get_type(param.arg_type).get_ctypes_value()
@@ -697,45 +724,67 @@ if __name__ == '__main__':
                                        .get_ctypes_value()))
         ctypes_sig = ' @-> '.join(ctypes_sig_list)
 
+        returned_params = \
+            list(filter(lambda param: type_manager.get_type(
+                param.arg_type).is_return_value(), function.parameters))
+        returned_values = list(map(lambda param: param.ocaml_name, returned_params))
+        returned_types = list(map(lambda param: check_enclosing_module(
+            type_manager.get_type(param.arg_type).get_ocaml_type()), returned_params))
+        erase_return_unit = function.return_type == 'void' and len(returned_params) > 0
+        if not erase_return_unit:
+            returned_values.append('res')
+            returned_types.append(check_enclosing_module(type_manager.get_type(
+                function.return_type).get_ocaml_type()))
+
         if not mli_only:
             opencv_ml.write('let __{} = foreign "{}" ({})'
                             .format(function.ocaml_name, function.c_name, ctypes_sig))
             opencv_ml.write('let {} {} ='
-                            .format(function.ocaml_name, ' '.join(param_names)))
+                            .format(function.ocaml_name, ' '.join(floated_param_names)))
             opencv_ml.indent()
             for param in function.parameters:
-                opencv_ml.write("let {}' = {} in"
-                                .format(param.ocaml_name,
-                                        type_manager.get_type(param.arg_type)
-                                        .ocaml_to_ctypes(param.ocaml_name)))
-            opencv_ml.write('let res = {} in'
-                            .format(type_manager.get_type(function.return_type)
+                param_type = type_manager.get_type(param.arg_type)
+                if param_type.is_cloneable():
+                    fmt = "let {0} = if {0}_recycle then {0} else Cvdata.clone {0} in let {{}}' = {{}} in" \
+                        .format(param.ocaml_name)
+                else:
+                    fmt = "let {}' = {} in"
+                opencv_ml.write(fmt.format(param.ocaml_name, param_type
+                                           .ocaml_to_ctypes(param.ocaml_name)))
+            opencv_ml.write('let {} = {} in'
+                            .format('_' if erase_return_unit else 'res',
+                                    type_manager.get_type(function.return_type)
                                     .ctypes_to_ocaml('__{} {}'
-                                                .format(function.ocaml_name,
-                                                        ' '.join(param_names_prime)))))
+                                                     .format(function.ocaml_name,
+                                                             ' '.join(param_names_prime)))))
             for param in function.parameters:
                 post_func = type_manager.get_type(param.arg_type) \
                                         .ocaml_to_ctypes(param.ocaml_name).post
                 if post_func is not None:
                     post = post_func(param.ocaml_name, "{}'".format(param.ocaml_name))
                     opencv_ml.write('{};'.format(post))
-            opencv_ml.write('res')
+            opencv_ml.write(', '.join(returned_values))
             opencv_ml.unindent()
 
-        ocaml_sig_list = [check_enclosing_module(
-            type_manager.get_type(param.arg_type).get_ocaml_type())
-                          for param in function.parameters]
+        def get_param_type(param):
+            typ = type_manager.get_type(param.arg_type)
+            typ_name = check_enclosing_module(typ.get_ocaml_type())
+            if typ.has_default_value():
+                return '?{}:{}'.format(param.ocaml_name, typ_name)
+            else:
+                return typ_name
+
+        ocaml_sig_list = list(map(get_param_type, floated_params))
         if len(ocaml_sig_list) == 0:
             ocaml_sig_list.append('unit')
-        ocaml_sig_list.append(check_enclosing_module(
-            type_manager.get_type(function.return_type).get_ocaml_type()))
+        ocaml_sig_list.append(' * '.join(returned_types))
         ocaml_sig = ' -> '.join(ocaml_sig_list)
 
         opencv_mli.write()
 
         opencv_mli.write('(**')
         opencv_mli.write(sanitize_docs(function.docs, name=function.ocaml_name,
-                                       params=function.parameters, param_map=function.param_map))
+                                       params=floated_params, param_map=function.param_map))
         opencv_mli.write('*)')
 
         opencv_mli.write('val {} : {}'.format(function.ocaml_name, ocaml_sig))
