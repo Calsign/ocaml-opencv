@@ -6,6 +6,7 @@ class Conv(str):
     def __init__(self, conv, post=None):
         self.post = post
 
+
 class Type():
     def get_cpp_type(self):
         """The type used in the original OpenCV C++ header.
@@ -75,6 +76,7 @@ class Type():
         """
         return False
 
+
 class BaseType(Type):
     def __init__(self, cpp_type, c_type, ctypes_type, ctypes_value, ocaml_type):
         self.cpp_type = cpp_type
@@ -98,6 +100,7 @@ class BaseType(Type):
     def get_ocaml_type(self):
         return self.ocaml_type
 
+
 class String(BaseType):
     def __init__(self):
         super().__init__('cv::String', 'const char *', 'string', 'string', 'string')
@@ -107,6 +110,7 @@ class String(BaseType):
 
     def c_to_cpp(self, val):
         return Conv('cv::String({})'.format(val))
+
 
 class WrapperType(Type):
     def __init__(self, inner):
@@ -139,6 +143,7 @@ class WrapperType(Type):
     def ocaml_to_ctypes(self, val):
         return self.inner.ocaml_to_ctypes(val)
 
+
 class Const(WrapperType):
     def __init__(self, inner):
         super().__init__(inner)
@@ -150,6 +155,7 @@ class Const(WrapperType):
     def get_c_type(self):
         # don't double const
         return 'const {}'.format(self.inner.get_c_type().replace('const ', ''))
+
 
 class GenericPointer(WrapperType):
     def __init__(self, inner, pointer_char):
@@ -181,13 +187,16 @@ class GenericPointer(WrapperType):
     def is_pointer(self):
         return True
 
+
 class Pointer(GenericPointer):
     def __init__(self, inner):
         super().__init__(inner, '*')
 
+
 class Reference(GenericPointer):
     def __init__(self, inner):
         super().__init__(inner, '&')
+
 
 class Array(WrapperType):
     def __init__(self, inner, dimension=None):
@@ -214,6 +223,7 @@ class Array(WrapperType):
     def get_ocaml_type(self):
         # TODO currently no fancy processing to extract array values
         return '({}) ptr'.format(self.inner.get_ctypes_type())
+
 
 class Vector(WrapperType):
     def __init__(self, inner):
@@ -250,6 +260,7 @@ class Vector(WrapperType):
     def must_pass_pointer(self):
         return True
 
+
 class CustomType(BaseType):
     def __init__(self, cpp_type, c_type, ctypes_type, ctypes_value, ocaml_type,
                  cpp2c='{}', c2cpp='{}', ctypes2ocaml='{}', ocaml2ctypes='{}', post=None,
@@ -279,6 +290,7 @@ class CustomType(BaseType):
     def must_pass_pointer(self):
         return self.must_pointerize
 
+
 class Mat(Type):
     def get_cpp_type(self):
         return 'cv::Mat'
@@ -306,6 +318,7 @@ class Mat(Type):
 
     def must_pass_pointer(self):
         return True
+
 
 class Cvdata(Type):
     def __init__(self, cpp_type, optional=False, ret=False, cloneable=False):
@@ -347,6 +360,7 @@ class Cvdata(Type):
     def is_cloneable(self):
         return self.cloneable
 
+
 class Scalar(Type):
     def get_cpp_type(self):
         return 'cv::Scalar'
@@ -375,6 +389,7 @@ class Scalar(Type):
     def must_pass_pointer(self):
         return True
 
+
 class RecycleFlag(BaseType):
     def __init__(self):
         super().__init__('__recycle_flag', 'bool', 'bool', 'bool', 'bool')
@@ -382,11 +397,13 @@ class RecycleFlag(BaseType):
     def get_default_value(self):
         return 'false'
 
+
 CONST = 'const'
 STD_VECTOR = 'std::vector<'
 CV_NAMESPACE = 'cv::'
 
 type_map = {}
+
 
 def add_type(new_type, silent_on_exists=False):
     if new_type.get_cpp_type() in type_map:
@@ -396,8 +413,10 @@ def add_type(new_type, silent_on_exists=False):
     else:
         type_map[new_type.get_cpp_type()] = new_type
 
+
 def wrap_type(cls, inner, *args):
     return None if inner is None else cls(inner, *args)
+
 
 def get_type(cpp_name):
     """Returns the type associated with the given C++ name.
@@ -429,14 +448,17 @@ def get_type(cpp_name):
     print('Could not find type for cpp_name: {}'.format(cpp_name))
     return None
 
+
 def has_type(cpp_name):
     return get_type(cpp_name) is not None
+
 
 def add_type_alias(type_name, alias):
     existing_type = get_type(type_name)
     assert existing_type is not None
     assert alias not in type_map
     type_map[alias] = existing_type
+
 
 def add_types():
     add_type(BaseType('void', 'void', 'unit', 'void', 'unit'))
@@ -458,5 +480,6 @@ def add_types():
     add_type(Cvdata('InputOutputArrayOfArrays', ret=True, cloneable=True))
 
     add_type(RecycleFlag())
+
 
 add_types()
