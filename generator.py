@@ -265,13 +265,18 @@ def convert_name(name):
     return (name, c_name, ocaml_name)
 
 
-def sanitize_docs(docs, name=None, params=[], param_map={}):
+def sanitize_docs(docs, name=None, params=[], param_map={}, extra_unit=False):
     if name is not None:
         def get_param_name(param):
-            fmt = '?{}' if type_manager.get_type(
-                param.arg_type).has_default_value() else '{}'
+            if type_manager.get_type(param.arg_type).has_default_value() \
+               or param.default_value is not None:
+                fmt = '?{}'
+            else:
+                fmt = '{}'
             return fmt.format(param.ocaml_name)
         param_names = list(map(get_param_name, params))
+        if extra_unit:
+            param_names.append('()')
         usage = 'Usage: [{} {}]' \
             .format(name, ' '.join(param_names))
     else:
@@ -911,7 +916,8 @@ if __name__ == '__main__':
 
         opencv_mli.write('(**')
         opencv_mli.write(sanitize_docs(function.docs, name=function.ocaml_name,
-                                       params=floated_params, param_map=function.param_map))
+                                       params=floated_params, param_map=function.param_map,
+                                       extra_unit=len(function.parameters) <= total_default_params))
         opencv_mli.write('*)')
 
         opencv_mli.write('val {} : {}'.format(function.ocaml_name, ocaml_sig))

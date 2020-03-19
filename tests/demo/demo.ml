@@ -12,7 +12,7 @@ let () =
     let threshed, _ = threshold blurred 100. 200. ~~`THRESH_BINARY in
     let rect = bounding_rect threshed in
     let drawn = rectangle1 blurred rect (color1 255.) ~thickness:2 in
-    (* let _ = calc_hist lab_l [0] threshed [10] [0.; 255.] true in *)
+    (* let _ = calc_hist lab_l [0] threshed [10] [0.; 255.] in *)
     let b = 30 in
     let tiled = Owl.Dense.Ndarray.Generic.concatenate ~axis:1
         [|drawn |> Cvdata.to_mat; threshed |> Cvdata.to_mat|] in
