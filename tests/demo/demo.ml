@@ -1,6 +1,8 @@
 
 open Opencv
 
+module O = Owl.Dense.Ndarray.Generic
+
 let () =
   let vid = Video_capture.video_capture2 "test.mp4" in
   (* let _ = get_text_size "hello" 10 10.0 10 10 in *)
@@ -14,9 +16,8 @@ let () =
     let drawn = rectangle1 blurred rect (color1 255.) ~thickness:2 in
     (* let _ = calc_hist lab_l [0] threshed [10] [0.; 255.] in *)
     let b = 30 in
-    let tiled = Owl.Dense.Ndarray.Generic.concatenate ~axis:1
-        [|drawn |> Cvdata.to_mat; threshed |> Cvdata.to_mat|] in
-    let padded = Owl.Dense.Ndarray.Generic.pad ~v:127 [[b; b]; [b; b]; [0; 0]] tiled in
+    let tiled = O.concatenate ~axis:1 Cvdata.[|to_mat drawn; to_mat threshed|] in
+    let padded = O.pad ~v:127 [[b; b]; [b; b]; [0; 0]] tiled in
     imshow "foobar" (Cvdata.Mat padded);
     let _ = wait_key () in
     loop ()
