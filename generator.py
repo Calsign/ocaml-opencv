@@ -107,6 +107,18 @@ class Parameter():
                                           self.default_value, 'Output'
                                           if self.output else '')
 
+    def get_default_val_c_name(self, enclosing_module, function_c_name):
+        return '{}__{}__{}__default' \
+            .format(('__{}'.format(enclosing_module)
+                     if enclosing_module is not None else ''),
+                    function_c_name, self.name)
+
+    def get_default_val_ocaml_name(self, enclosing_module, function_ocaml_name):
+        return '{}__{}__{}__default' \
+            .format(('__{}'.format(enclosing_module)
+                     if enclosing_module is not None else ''),
+                    function_ocaml_name, self.ocaml_name)
+
 
 class Function():
     def __init__(self, cpp_name, c_name, ocaml_name,
@@ -487,6 +499,8 @@ if __name__ == '__main__':
     opencv_h.write()
     opencv_h.write('#include "../glue.h"')
     opencv_h.write()
+    opencv_h.write('using namespace cv;')
+    opencv_h.write()
     opencv_h.write('extern "C" {')
     opencv_h.indent()
 
@@ -504,7 +518,8 @@ if __name__ == '__main__':
     opencv_ml.write(
         'let lib_opencv = Dl.dlopen ~filename:"libocamlopencv.so" ~flags:[RTLD_NOW]')
     opencv_ml.write('let foreign = foreign ~from:lib_opencv')
-    opencv_ml.write('let foreign_value = foreign_value ~from:lib_opencv')
+    opencv_ml.write(
+        'let foreign_value name typ = foreign_value ~from:lib_opencv name typ')
     opencv_ml.write()
 
     opencv_mli.write('open Bigarray')
@@ -700,6 +715,63 @@ if __name__ == '__main__':
         if not mli_only:
             opencv_h.write('{};'.format(stub))
 
+        # Keep track of number of default parameters.
+        # If all of the parameters have default values, then we need
+        # to add a unit to the end so that we can used properly (OCaml
+        # functions where the last parameter is optional cannot be applied
+        # without supplying that parameter)
+        total_default_params = 0
+
+        # default parameters
+        for param in function.parameters:
+            if param.default_value is not None:
+                arg_type = type_manager.get_type(param.arg_type)
+                c_name = param.get_default_val_c_name(
+                    enclosing_module, function.c_name)
+                ocaml_name = param.get_default_val_ocaml_name(
+                    enclosing_module, function.ocaml_name)
+
+                cpp_type = arg_type.get_cpp_type()
+                pointerized_type = pointerize_type(arg_type, cpp=True)
+
+                # There are screwy things with autoboxing rules and whatnot,
+                # so the easiest thing for us to do here is put the default
+                # value as a default argument in a helper function and then
+                # call that function - that way it is the same syntactic
+                # class as the header file from which it is pulled.
+
+                opencv_h.write('{} {}();'.format(pointerized_type, c_name))
+
+                opencv_cpp.write(
+                    '{} _{}({} v = {}) {{'.format(cpp_type, c_name,
+                                                  cpp_type, param.default_value))
+                opencv_cpp.indent()
+                opencv_cpp.write('return v;')
+                opencv_cpp.unindent()
+                opencv_cpp.write('}')
+
+                opencv_cpp.write('{} {}() {{'.format(pointerized_type, c_name))
+                opencv_cpp.indent()
+                if arg_type.must_pass_pointer() and not arg_type.is_pointer():
+                    opencv_cpp.write(
+                        'return new {}(_{}());'.format(cpp_type, c_name))
+                else:
+                    opencv_cpp.write('return _{}();'.format(c_name))
+                opencv_cpp.unindent()
+                opencv_cpp.write('}')
+
+                opencv_ml.write('let {} ='.format(ocaml_name))
+                opencv_ml.indent()
+                opencv_ml.write('let f = foreign "{}" (void @-> returning ({})) in'
+                                .format(c_name, arg_type.get_ctypes_value()))
+                opencv_ml.write('fun () -> let v = f () in {}'
+                                .format(arg_type.ctypes_to_ocaml('v')))
+                opencv_ml.unindent()
+
+                total_default_params += 1
+            elif type_manager.get_type(param.arg_type).has_default_value():
+                total_default_params += 1
+
         def pointerize_value(typ, val):
             fmt = '*({})' if typ.must_pass_pointer() and not typ.is_pointer() else '{}'
             return fmt.format(typ.c_to_cpp(val))
@@ -729,16 +801,24 @@ if __name__ == '__main__':
 
         def get_param_name(param):
             typ = type_manager.get_type(param.arg_type)
-            if typ.has_default_value():
+            if param.default_value is not None:
+                return '?({} = {} ())' \
+                    .format(param.ocaml_name,
+                            param.get_default_val_ocaml_name(enclosing_module,
+                                                             function.ocaml_name))
+            elif typ.has_default_value():
                 return '?({} = {})'.format(param.ocaml_name, typ.get_default_value())
             else:
                 return param.ocaml_name
 
+        def is_optional_param(param):
+            return type_manager.get_type(param.arg_type).has_default_value() \
+                or param.default_value is not None
+
         # move (float) optional params to the front to prevent un-erasable optional arguments
         # (basically optional arguments can't be the last parameter in OCaml)
-        floated_params = \
-            list(sorted(function.parameters, key=lambda param:
-                        not type_manager.get_type(param.arg_type).has_default_value()))
+        floated_params = list(
+            sorted(function.parameters, key=lambda param: not is_optional_param(param)))
 
         # add extra parameters for optionally disabling cloning of cloneable params
         inserted_param_count = 0
@@ -753,8 +833,9 @@ if __name__ == '__main__':
         floated_param_names = list(map(get_param_name, floated_params))
         param_names_prime = ["{}'".format(
             param.ocaml_name) for param in function.parameters]
-        if len(floated_param_names) == 0:
+        if len(function.parameters) <= total_default_params:
             floated_param_names.append('()')
+        if len(function.parameters) == 0:
             param_names_prime.append('()')
 
         ctypes_sig_list = [type_manager.get_type(param.arg_type).get_ctypes_value()
@@ -766,9 +847,8 @@ if __name__ == '__main__':
                                        .get_ctypes_value()))
         ctypes_sig = ' @-> '.join(ctypes_sig_list)
 
-        returned_params = \
-            list(filter(lambda param: type_manager.get_type(
-                param.arg_type).is_return_value(), function.parameters))
+        returned_params = list(filter(lambda param: type_manager.get_type(
+            param.arg_type).is_return_value(), function.parameters))
         returned_values = list(
             map(lambda param: param.ocaml_name, returned_params))
         returned_types = list(map(lambda param: check_enclosing_module(
@@ -803,7 +883,7 @@ if __name__ == '__main__':
                                                              ' '.join(param_names_prime)))))
             for param in function.parameters:
                 post_func = type_manager.get_type(param.arg_type) \
-                                        .ocaml_to_ctypes(param.ocaml_name).post
+                    .ocaml_to_ctypes(param.ocaml_name).post
                 if post_func is not None:
                     post = post_func(param.ocaml_name,
                                      "{}'".format(param.ocaml_name))
@@ -814,12 +894,14 @@ if __name__ == '__main__':
         def get_param_type(param):
             typ = type_manager.get_type(param.arg_type)
             typ_name = check_enclosing_module(typ.get_ocaml_type())
-            if typ.has_default_value():
+            if typ.has_default_value() or param.default_value is not None:
                 return '?{}:{}'.format(param.ocaml_name, typ_name)
             else:
                 return typ_name
 
         ocaml_sig_list = list(map(get_param_type, floated_params))
+        if 0 < len(function.parameters) <= total_default_params:
+            ocaml_sig_list.append('unit')
         if len(ocaml_sig_list) == 0:
             ocaml_sig_list.append('unit')
         ocaml_sig_list.append(' * '.join(returned_types))
@@ -859,7 +941,7 @@ if __name__ == '__main__':
                 opencv_mli.write('type t = {}'.format(cls.ocaml_type))
                 for function in classes[cls.inherits].functions:
                     write_function(
-                        function, enclosing_module=classes[cls.inherits].qualified_cpp_name, mli_only=True)
+                        function, enclosing_module=cls.ocaml_name, mli_only=True)
             else:
                 print('Class {} inherits from {}, but {} does not exist'.format(
                     cls.cpp_name, cls.inherits, cls.inherits))
