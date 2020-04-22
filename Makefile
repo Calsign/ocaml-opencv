@@ -70,6 +70,8 @@ docs: $(BUILT_LIBS)
 
 $(TESTS):
 	@echo "Running test: $@"
+#	 clean first to guarantee that we pick up changes to the library
+	$(MAKE) -C $@ clean
 	$(MAKE) -C $@ test
 
 test: $(INSTALLED_SHARED_LIB) libinstall $(TESTS)

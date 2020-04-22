@@ -15,7 +15,7 @@ let () =
     let _ = gaussian_blur chan ~dst:chan {width=21; height=21} 10. in
     let _ = threshold chan ~dst:threshed 100. 200. ~~`THRESH_BINARY in
     let rect = bounding_rect threshed in
-    let _ = rectangle1 ~img_recycle:true chan rect (color1 255.) ~thickness:2 in
+    let _ = rectangle1 chan rect (color1 255.) ~thickness:2 in
     let b = 30 in
     let tiled = Owl.Dense.Ndarray.Generic.concatenate ~axis:1
         [|chan |> Cvdata.to_mat; threshed |> Cvdata.to_mat|] in

@@ -474,10 +474,10 @@ def add_types():
 
     add_type(Cvdata('InputArray'))
     add_type(Cvdata('OutputArray', optional=True, ret=True))
-    add_type(Cvdata('InputOutputArray', ret=True, cloneable=True))
+    add_type(Cvdata('InputOutputArray', ret=False, cloneable=False))
     add_type(Cvdata('InputArrayOfArrays'))
     add_type(Cvdata('OutputArrayOfArrays', optional=True, ret=True))
-    add_type(Cvdata('InputOutputArrayOfArrays', ret=True, cloneable=True))
+    add_type(Cvdata('InputOutputArrayOfArrays', ret=False, cloneable=False))
 
     add_type(RecycleFlag())
 
