@@ -344,6 +344,7 @@ if __name__ == '__main__':
     defined_enum_consts = set()
     classes = {}
     overload_counts = {}
+    draw_functions = []
 
     def add_struct(struct):
         type_manager.add_type(type_manager.CustomType(
@@ -720,6 +721,8 @@ if __name__ == '__main__':
         if not mli_only:
             opencv_h.write('{};'.format(stub))
 
+        draw_in_out_mat_count = 0
+
         # Keep track of number of default parameters.
         # If all of the parameters have default values, then we need
         # to add a unit to the end so that we can used properly (OCaml
@@ -729,8 +732,10 @@ if __name__ == '__main__':
 
         # default parameters
         for param in function.parameters:
+            arg_type = type_manager.get_type(param.arg_type)
+            draw_in_out_mat_count += arg_type.is_draw_function()
+
             if param.default_value is not None:
-                arg_type = type_manager.get_type(param.arg_type)
                 c_name = param.get_default_val_c_name(
                     enclosing_module, function.c_name)
                 ocaml_name = param.get_default_val_ocaml_name(
@@ -824,6 +829,7 @@ if __name__ == '__main__':
         # (basically optional arguments can't be the last parameter in OCaml)
         floated_params = list(
             sorted(function.parameters, key=lambda param: not is_optional_param(param)))
+        optional_param_count = len(list(filter(is_optional_param, function.parameters)))
 
         # add extra parameters for optionally disabling cloning of cloneable params
         inserted_param_count = 0
@@ -864,6 +870,11 @@ if __name__ == '__main__':
             returned_values.append('res')
             returned_types.append(check_enclosing_module(type_manager.get_type(
                 function.return_type).get_ocaml_type()))
+
+        is_draw_function = draw_in_out_mat_count == 1 \
+            and function.return_type == 'void' \
+            and len(returned_params) == 0 \
+            and optional_param_count < len(floated_params) - 1
 
         if not mli_only:
             opencv_ml.write('let __{} = foreign "{}" ({})'
@@ -922,6 +933,15 @@ if __name__ == '__main__':
 
         opencv_mli.write('val {} : {}'.format(function.ocaml_name, ocaml_sig))
 
+        if is_draw_function:
+            def is_draw_function_param(param):
+                return type_manager.get_type(param.arg_type).is_draw_function()
+            filtered_params = list(filter(lambda x: not is_draw_function_param(x),
+                                          floated_params))
+            draw_function_param = list(filter(is_draw_function_param, floated_params))[0]
+            draw_functions.append((function, floated_params,
+                                   filtered_params, draw_function_param, enclosing_module))
+
     def write_class(cls):
         if len(cls.docs) > 0:
             opencv_mli.write()
@@ -967,6 +987,73 @@ if __name__ == '__main__':
         opencv_mli.unindent()
         opencv_mli.write('end')
 
+    def write_draw_module():
+        opencv_mli.write()
+        opencv_mli.write('(** Allows for pure-functional drawing operations by queueing')
+        opencv_mli.write('    a sequence of operations to be drawn at once on a copy of')
+        opencv_mli.write('    the source image with [draw]. *)')
+        opencv_mli.write('module Draw : sig')
+        opencv_mli.indent()
+
+        opencv_ml.write()
+        opencv_ml.write('module Draw = struct')
+        opencv_ml.indent()
+
+        opencv_mli.write('(** A deferred drawing operation produced by the drawing')
+        opencv_mli.write('    functions below and consumed by [draw]. *)')
+        opencv_mli.write('type t')
+        opencv_mli.write()
+        opencv_mli.write('(** [draw queue mat] is the mat resulting from sequentially')
+        opencv_mli.write('    performing all drawing operations in the [queue] to [mat].')
+        opencv_mli.write('    The returned mat starts as a clone of [mat], so [mat] is')
+        opencv_mli.write('    not modified, i.e. this is a pure function. *)')
+        opencv_mli.write('val draw : t list -> Cvdata.t -> Cvdata.t')
+
+        opencv_ml.write('type t = Cvdata.t -> unit')
+        opencv_ml.write()
+        opencv_ml.write('let draw lst mat =')
+        opencv_ml.indent()
+        opencv_ml.write('let clone = Cvdata.clone mat in')
+        opencv_ml.write('List.iter (fun f -> f clone) lst;')
+        opencv_ml.write('clone')
+        opencv_ml.unindent()
+
+        for function, params, filtered_params, draw_param, encl_module in draw_functions:
+            def get_optioned_type(param):
+                typ = type_manager.get_type(param.arg_type)
+                if typ.has_default_value() or param.default_value is not None:
+                    return '?{}:{}'.format(param.ocaml_name, typ.get_ocaml_type())
+                else:
+                    return typ.get_ocaml_type()
+
+            sig = ' -> '.join(map(get_optioned_type, filtered_params))
+            opencv_mli.write()
+            opencv_mli.write('val {} : {} -> t'.format(function.ocaml_name, sig))
+
+            def get_optioned_name(param):
+                typ = type_manager.get_type(param.arg_type)
+                if typ.has_default_value() or param.default_value is not None:
+                    return '?{}'.format(param.ocaml_name)
+                else:
+                    return param.ocaml_name
+
+            filtered_names = ' '.join(map(get_optioned_name, filtered_params))
+            unfiltered_names = ' '.join(map(get_optioned_name, params))
+            func_name = '{}.{}'.format(encl_module, function.ocaml_name) \
+                if encl_module is not None else function.ocaml_name
+            opencv_ml.write()
+            opencv_ml.write('let {} {} {} ='.format(function.ocaml_name,
+                                                    filtered_names, draw_param.ocaml_name))
+            opencv_ml.indent()
+            opencv_ml.write('{} {}'.format(func_name, unfiltered_names))
+            opencv_ml.unindent()
+
+        opencv_mli.unindent()
+        opencv_mli.write('end')
+
+        opencv_ml.unindent()
+        opencv_ml.write('end')
+
     opencv_ml.write_all(read_file('incl/mat.ml.incl'))
     opencv_mli.write_all(read_file('incl/mat.mli.incl'))
 
@@ -981,6 +1068,8 @@ if __name__ == '__main__':
 
     for function in functions:
         write_function(function)
+
+    write_draw_module()
 
     opencv_mli.write()
     opencv_mli.write('module Cvconst : sig')

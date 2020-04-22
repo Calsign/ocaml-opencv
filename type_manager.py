@@ -76,6 +76,12 @@ class Type():
         """
         return False
 
+    def is_draw_function(self):
+        """True iff parameters of this type indicate that the function is
+        a drawing function.
+        """
+        return False
+
 
 class BaseType(Type):
     def __init__(self, cpp_type, c_type, ctypes_type, ctypes_value, ocaml_type):
@@ -321,11 +327,12 @@ class Mat(Type):
 
 
 class Cvdata(Type):
-    def __init__(self, cpp_type, optional=False, ret=False, cloneable=False):
+    def __init__(self, cpp_type, optional=False, ret=False, cloneable=False, is_draw=False):
         self.cpp_type = cpp_type
         self.optional = optional
         self.ret = ret
         self.cloneable = cloneable
+        self.is_draw = is_draw
 
     def get_cpp_type(self):
         return 'cv::{}'.format(self.cpp_type)
@@ -359,6 +366,9 @@ class Cvdata(Type):
 
     def is_cloneable(self):
         return self.cloneable
+
+    def is_draw_function(self):
+        return self.is_draw
 
 
 class Scalar(Type):
@@ -474,7 +484,7 @@ def add_types():
 
     add_type(Cvdata('InputArray'))
     add_type(Cvdata('OutputArray', optional=True, ret=True))
-    add_type(Cvdata('InputOutputArray', ret=False, cloneable=False))
+    add_type(Cvdata('InputOutputArray', ret=False, cloneable=False, is_draw=True))
     add_type(Cvdata('InputArrayOfArrays'))
     add_type(Cvdata('OutputArrayOfArrays', optional=True, ret=True))
     add_type(Cvdata('InputOutputArrayOfArrays', ret=False, cloneable=False))
