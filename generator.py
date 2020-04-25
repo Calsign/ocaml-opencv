@@ -235,7 +235,8 @@ class FileWriter():
             f.write(self.buf.getvalue())
 
 
-def convert_name(name):
+def convert_name(name, is_function=True, create_ocaml_overload_counts=False,
+                 parent_module=None):
     # strip 'cv.' prefix
     if name.startswith('cv.'):
         name = name[3:]
@@ -251,13 +252,25 @@ def convert_name(name):
         overload_counts[c_name] += 1
         suffix = str(overload_counts[c_name])
         c_name = c_name + suffix
-        ocaml_name = name + suffix
+        ocaml_name = name if is_function else name + suffix
     else:
         overload_counts[c_name] = 0
         ocaml_name = name
 
     # convert to camel case
     ocaml_name = snake_case(ocaml_name)
+
+    # in this case we detect a class method and re-run this function anyway,
+    # so don't screw up the overload counts
+    if not ('.' in ocaml_name and is_function):
+        overload_key = ocaml_name if parent_module is None \
+            else parent_module + '.' + ocaml_name
+        if overload_key in ocaml_overload_counts:
+            ocaml_overload_counts[overload_key] += 1
+            suffix = str(ocaml_overload_counts[overload_key])
+            ocaml_name += suffix
+        elif create_ocaml_overload_counts:
+            ocaml_overload_counts[overload_key] = 0
 
     if ocaml_name in ocaml_reserved:
         ocaml_name = ocaml_reserved[ocaml_name]
@@ -344,6 +357,7 @@ if __name__ == '__main__':
     defined_enum_consts = set()
     classes = {}
     overload_counts = {}
+    ocaml_overload_counts = {}
     draw_functions = []
 
     def add_struct(struct):
@@ -377,7 +391,7 @@ if __name__ == '__main__':
 
     def add_class(decl):
         full_class_name = decl[0].rsplit(' ', 1)[1]
-        name, c_name, ocaml_name = convert_name(full_class_name)
+        name, c_name, ocaml_name = convert_name(full_class_name, is_function=False)
         inherits = decl[1].rsplit('::', 1)[1] if len(decl[1]) > 0 else None
 
         cpp_name = name
@@ -432,7 +446,7 @@ if __name__ == '__main__':
             if cls in classes:
                 name = name.rsplit('.', 1)[1]
                 c_name = c_name.replace('.', '_')
-                ocaml_name = convert_name(name)[2]
+                ocaml_name = convert_name(name, parent_module=cls)[2]
 
                 c_params = params[:]
 
@@ -466,8 +480,8 @@ if __name__ == '__main__':
     # first pass to collect classes and add types
     for decl in decls:
         if decl[0].startswith('enum'):
-            # there's something screwy that happens where sometimes classes show up as enums
-            # this is a really hacky way to make it work
+            # there's something screwy that happens where sometimes classes
+            # show up as enums, this is a really hacky way to make it work
             if decl[0].endswith('.<unnamed>'):
                 decl[0] = decl[0][:-10]
                 full_class_name = decl[0].rsplit(' ', 1)[1]
@@ -481,7 +495,26 @@ if __name__ == '__main__':
         else:
             pass
 
-    # second pass to collect functions and methods
+    # second pass to identify overloaded OCaml functions
+    for decl in decls:
+        if decl[0].startswith('enum') or decl[0].startswith('class'):
+            pass
+        else:
+            name, _, _ = convert_name(decl[0], create_ocaml_overload_counts=True)
+
+            if '.' in name:
+                # class method
+                cls = name.rsplit('.', 1)[0]
+                if cls in classes:
+                    name = name.rsplit('.', 1)[1]
+                    convert_name(name, create_ocaml_overload_counts=True,
+                                 parent_module=cls)
+
+    # only add numbers for functions that are actually overloaded
+    ocaml_overload_counts = \
+        {name: 0 for name, count in ocaml_overload_counts.items() if count > 0}
+
+    # third pass to collect functions and methods
     for decl in decls:
         if decl[0].startswith('enum'):
             pass

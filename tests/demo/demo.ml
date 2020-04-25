@@ -7,7 +7,7 @@ let () =
   let vid = Video_capture.video_capture2 "test.mp4" in
   (* let _ = get_text_size "hello" 10 10.0 10 10 in *)
   let rec loop () =
-    let mat, _ = Video_capture.read1 vid in
+    let mat, _ = Video_capture.read vid in
     let lab = cvt_color mat ~~`COLOR_BGR2Lab in
     let lab_l = extract_channel lab 0 in
     let blurred = gaussian_blur lab_l {width=21; height=21} 10. in
@@ -15,7 +15,7 @@ let () =
     let contours, _ = find_contours threshed ~~`RETR_EXTERNAL ~~`CHAIN_APPROX_SIMPLE in
     let rect = bounding_rect threshed in
     let drawn = Draw.draw [
-        Draw.rectangle1 rect (color1 255.) ~thickness:2;
+        Draw.rectangle2 rect (color1 255.) ~thickness:2;
         Draw.draw_contours contours (-1) (color1 0.) ~thickness:4;
       ] blurred in
     (* let _ = calc_hist [lab_l] [0] threshed [10] [0.; 255.] in *)
