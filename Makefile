@@ -12,7 +12,6 @@ INSTALLED_SHARED_LIB=$(SHARED_LIBS_INSTALL_DIR)/$(SHARED_LIB)
 
 MLS=$(GEN)/opencv
 FLAGS=-use-ocamlfind
-LFLAGS=-lflags -locamlopencv
 
 LIB_NAME=opencv
 LIB_FILES=META $(BUILD)/$(GEN)/opencv.cmxa $(BUILD)/$(GEN)/*.cmx \
@@ -41,20 +40,14 @@ $(BUILD)/$(SHARED_LIB): $(CPP) $(HEADERS)
 
 $(BUILT_LIBS): $(BUILD)/$(SHARED_LIB) $(MLS:=.ml) $(MLS:=.mli)
 	@echo "Building opencv OCaml library"
-#	ocamlbuild $(FLAGS) $(LFLAGS) $(NATIVE_LIB) $(BYTE_LIB)
 	ocamlbuild $(FLAGS) $(NATIVE_LIB) $(BYTE_LIB)
-
-#$(BUILT_LIBS): $(BUILD)/$(SHARED_LIB) $(MLS:=.ml) $(MLS:=.mli)
-#	@echo "Building opencv OCaml library"
-#	ocamlbuild $(FLAGS) $(GEN)/opencv.cmx $(GEN)/opencv.cmo $(GEN)/opencv.cmi
-#	ocamlfind ocamlmklib $(BUILD)/$(GEN)/*.cmx $(BUILD)/$(GEN)/*.cmo $(BUILD)/$(GEN)/*.ml \
-#		-package ctypes -package ctypes.foreign -locamlopencv -o $(BUILD)/opencv
 
 $(INSTALLED_SHARED_LIB): $(BUILD)/$(SHARED_LIB)
 	@echo "Installing shared library"
+#	needing sudo is unfortunate but we need to put the shared library
+#	somewhere that the linker will find it
 	sudo rm -f $(INSTALLED_SHARED_LIB)
 	sudo cp $(BUILD)/$(SHARED_LIB) $(INSTALLED_SHARED_LIB)
-#	@(which ldconfig > /dev/null && sudo ldconfig $(SHARED_LIBS_INSTALL_DIR)) || true
 
 libinstall: $(BUILT_LIBS)
 	@echo "Installing ocamlfind library"
@@ -70,7 +63,7 @@ docs: $(BUILT_LIBS)
 
 $(TESTS):
 	@echo "Running test: $@"
-#	 clean first to guarantee that we pick up changes to the library
+#	clean first to guarantee that we pick up changes to the library
 	$(MAKE) -C $@ clean test
 
 test: $(INSTALLED_SHARED_LIB) libinstall $(TESTS)
@@ -86,4 +79,5 @@ clean: $(TESTS_CLEAN)
 	sudo rm -f $(INSTALLED_SHARED_LIB)
 	ocamlfind remove $(LIB_NAME)
 
-.PHONY: default sharedlib lib libinstall install docs test clean $(TESTS) $(TESTS_CLEAN)
+.PHONY: default sharedlib lib libinstall install docs test clean \
+	$(TESTS) $(TESTS_CLEAN)
