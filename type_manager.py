@@ -33,6 +33,11 @@ class Type():
         """
         raise Exception('Unimplemented')
 
+    def get_ocaml_param_type(self):
+        """The type used in OCaml parameters.
+        """
+        return self.get_ocaml_type()
+
     def cpp_to_c(self, val):
         return Conv(val)
 
@@ -65,10 +70,11 @@ class Type():
         """
         return None
 
-    def is_return_value(self):
-        """True iff parameters of this type should be returned.
+    def return_value(self, val):
+        """The return transformation applied to val if values of this type should
+        be returned. None if values of this type should not be returned.
         """
-        return False
+        return None
 
     def is_cloneable(self):
         """True iff parameters of this type should be optionally cloned
@@ -327,7 +333,8 @@ class Mat(Type):
 
 
 class Cvdata(Type):
-    def __init__(self, cpp_type, optional=False, ret=False, cloneable=False, is_draw=False):
+    def __init__(self, cpp_type, optional=False, ret=False, cloneable=False,
+                 is_draw=False):
         self.cpp_type = cpp_type
         self.optional = optional
         self.ret = ret
@@ -361,14 +368,59 @@ class Cvdata(Type):
     def get_default_value(self):
         return '(Cvdata.Mat (Mat.create ()))' if self.optional else None
 
-    def is_return_value(self):
-        return self.ret
+    def return_value(self, val):
+        return val if self.ret else None
 
     def is_cloneable(self):
         return self.cloneable
 
     def is_draw_function(self):
         return self.is_draw
+
+
+class CvdataArray(Cvdata):
+    def __init__(self, *args, mutable=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.mutable = mutable
+
+    def get_ocaml_type(self):
+        return '(Cvdata.t list)'
+
+    def get_ocaml_param_type(self):
+        if self.mutable:
+            return '(Cvdata.t list ref)'
+        else:
+            return self.get_ocaml_type()
+
+    def ctypes_to_ocaml(self, val):
+        return Conv('(Cvdata.extract_cvdata_array ({}))'.format(val))
+
+    def _post(self, original, converted):
+        return 'Cvdata.pack_cvdata_array_post {} {}'.format(original, converted)
+
+    def ocaml_to_ctypes(self, val):
+        if self.mutable:
+            return Conv('(Cvdata.pack_cvdata_array (!({})))'.format(val), post=self._post)
+        else:
+            return Conv('(Cvdata.pack_cvdata_array ({}))'.format(val))
+
+    def get_default_value(self):
+        if self.optional:
+            if self.mutable:
+                return '(ref [])'
+            else:
+                return '[]'
+        else:
+            return None
+
+    def return_value(self, val):
+        if self.ret:
+            if self.mutable:
+                return '(!({}))'.format(val)
+            else:
+                return val
+        else:
+            return None
 
 
 class Scalar(Type):
@@ -484,10 +536,11 @@ def add_types():
 
     add_type(Cvdata('InputArray'))
     add_type(Cvdata('OutputArray', optional=True, ret=True))
-    add_type(Cvdata('InputOutputArray', ret=False, cloneable=False, is_draw=True))
-    add_type(Cvdata('InputArrayOfArrays'))
-    add_type(Cvdata('OutputArrayOfArrays', optional=True, ret=True))
-    add_type(Cvdata('InputOutputArrayOfArrays', ret=False, cloneable=False))
+    add_type(Cvdata('InputOutputArray', is_draw=True))
+    add_type(CvdataArray('InputArrayOfArrays'))
+    add_type(CvdataArray('OutputArrayOfArrays',
+                         optional=True, ret=True, mutable=True))
+    add_type(CvdataArray('InputOutputArrayOfArrays', mutable=True))
 
     add_type(RecycleFlag())
 

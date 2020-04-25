@@ -859,9 +859,10 @@ if __name__ == '__main__':
         ctypes_sig = ' @-> '.join(ctypes_sig_list)
 
         returned_params = list(filter(lambda param: type_manager.get_type(
-            param.arg_type).is_return_value(), function.parameters))
+            param.arg_type).return_value('') is not None, function.parameters))
         returned_values = list(
-            map(lambda param: param.ocaml_name, returned_params))
+            map(lambda param: type_manager.get_type(param.arg_type)
+                .return_value(param.ocaml_name), returned_params))
         returned_types = list(map(lambda param: check_enclosing_module(
             type_manager.get_type(param.arg_type).get_ocaml_type()), returned_params))
         erase_return_unit = function.return_type == 'void' and len(
@@ -909,7 +910,7 @@ if __name__ == '__main__':
 
         def get_param_type(param):
             typ = type_manager.get_type(param.arg_type)
-            typ_name = check_enclosing_module(typ.get_ocaml_type())
+            typ_name = check_enclosing_module(typ.get_ocaml_param_type())
             if typ.has_default_value() or param.default_value is not None:
                 return '?{}:{}'.format(param.ocaml_name, typ_name)
             else:
@@ -1022,9 +1023,9 @@ if __name__ == '__main__':
             def get_optioned_type(param):
                 typ = type_manager.get_type(param.arg_type)
                 if typ.has_default_value() or param.default_value is not None:
-                    return '?{}:{}'.format(param.ocaml_name, typ.get_ocaml_type())
+                    return '?{}:{}'.format(param.ocaml_name, typ.get_ocaml_param_type())
                 else:
-                    return typ.get_ocaml_type()
+                    return typ.get_ocaml_param_type()
 
             sig = ' -> '.join(map(get_optioned_type, filtered_params))
             opencv_mli.write()

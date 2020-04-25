@@ -3,6 +3,8 @@
 #include <stdio.h>
 
 extern "C" {
+    // Mat functions
+
     cv::Mat *create_mat() {
         // We need to initialize the mat with at least 2 dimensions.
         // If we don't, there will be significant issues because
@@ -59,6 +61,24 @@ extern "C" {
         ba->dim[mat->size.dims()] = mat->channels();
     }
 
+
+    // Vector functions
+
+    void *vector_data(std::vector<char> v) {
+        return v.data();
+    }
+
+    int vector_length(std::vector<char> v) {
+        return v.size();
+    }
+
+    std::vector<char> *create_vector(char &arr, int length, int item_size) {
+        return new std::vector<char>(length * item_size, arr);
+    }
+
+
+    // InputArray functions
+
     cv::Mat *mat_of_inputarray(cv::InputArray arr) {
         if (!arr.isMat()) {
             caml_failwith("opencv: InputArray is not Mat");
@@ -76,36 +96,103 @@ extern "C" {
         return new std::vector<cv::Mat>(vector);
     }
 
-    void *vector_data(std::vector<char> v) {
-        return v.data();
+    int inputarray_array_length(cv::InputArrayOfArrays arr) {
+        if (!arr.isMatVector()) {
+            caml_failwith("opencv: InputArray is not vector of Mat");
+        }
+        return arr.size().area();
     }
 
-    int vector_length(std::vector<char> v) {
-        return v.size();
+    cv::Mat *mat_from_inputarray_array(cv::InputArrayOfArrays arr, int index) {
+        if (!arr.isMatVector()) {
+            caml_failwith("opencv: InputArray is not vector of Mat");
+        }
+        cv::Mat *mat = new cv::Mat(arr.getMat(index));
+        return mat;
     }
 
-    std::vector<char> *create_vector(char &arr, int length, int item_size) {
-        return new std::vector<char>(length * item_size, arr);
+    int inputarray_kind(cv::InputArray cvdata) {
+        switch (cvdata.kind()) {
+        case cv::_InputArray::NONE:
+            return 0;
+        case cv::_InputArray::MAT:
+            return 1;
+        case cv::_InputArray::MATX:
+            return 2;
+        case cv::_InputArray::STD_VECTOR:
+            return 3;
+        case cv::_InputArray::STD_VECTOR_VECTOR:
+            return 4;
+        case cv::_InputArray::STD_VECTOR_MAT:
+            return 5;
+        case cv::_InputArray::EXPR:
+            return 6;
+        case cv::_InputArray::OPENGL_BUFFER:
+            return 7;
+        case cv::_InputArray::CUDA_HOST_MEM:
+            return 8;
+        case cv::_InputArray::CUDA_GPU_MAT:
+            return 9;
+        case cv::_InputArray::UMAT:
+            return 10;
+        case cv::_InputArray::STD_VECTOR_UMAT:
+            return 11;
+        case cv::_InputArray::STD_BOOL_VECTOR:
+            return 12;
+        case cv::_InputArray::STD_VECTOR_CUDA_GPU_MAT:
+            return 13;
+        case cv::_InputArray::STD_ARRAY:
+            return 14;
+        case cv::_InputArray::STD_ARRAY_MAT:
+            return 15;
+        default:
+            return -1;
+        }
     }
 
-    bool is_mat(cv::InputArray cvdata) {
-        return cvdata.kind() == cv::_InputArray::MAT;
+    int mat_depth(cv::Mat *mat) {
+        switch (mat->depth()) {
+        case CV_8U:
+            return 0;
+        case CV_8S:
+            return 1;
+        case CV_16U:
+            return 2;
+        case CV_16S:
+            return 3;
+        case CV_32S:
+            return 4;
+        case CV_32F:
+            return 5;
+        case CV_64F:
+            return 6;
+        default:
+            return -1;
+        }
     }
-    bool is_vector_mat(cv::InputArray cvdata) {
-        return cvdata.kind() == cv::_InputArray::STD_VECTOR_MAT;
+
+    std::vector<cv::Mat> *create_vector_mat(long int length) {
+        std::vector<cv::Mat> *vec = new std::vector<cv::Mat>();
+        vec->reserve(length);
+        return vec;
     }
-    bool is_vector_bool(cv::InputArray cvdata) {
-        return cvdata.kind() == cv::_InputArray::STD_BOOL_VECTOR;
+
+    void add_vector_mat(std::vector<cv::Mat> *vec, cv::Mat &mat) {
+        vec->push_back(mat);
     }
 
     cv::InputArray inputarray_of_mat(const cv::Mat &mat) {
         const cv::_InputArray *arr = new cv::_InputArray(mat);
         return *arr;
     }
+
     cv::InputArray inputarray_of_mat_vector(const std::vector<cv::Mat> &mats) {
         const cv::_InputArray *arr = new cv::_InputArray(mats);
         return *arr;
     }
+
+
+    // Scalar functions
 
     cv::Scalar *build_scalar(double w, double x, double y, double z) {
         return new cv::Scalar(w, x, y, z);

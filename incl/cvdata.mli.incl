@@ -2,19 +2,10 @@
 module Cvdata : sig
   type t =
     | Mat of Mat.t
-    | MatList of Mat.t list
-    | Float of float
-    | BoolList of bool list
     | Unknown of unit Ctypes.ptr
 
   val of_mat : Mat.t -> t
   val to_mat : t -> Mat.t
-  val of_mat_list : Mat.t list -> t
-  val to_mat_list : t -> Mat.t list
-  val of_float : float -> t
-  val to_float : t -> float
-  val of_bool_list : bool list -> t
-  val to_bool_list : t -> bool list
 
   val clone : t -> t
 end

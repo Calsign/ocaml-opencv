@@ -6,6 +6,8 @@
 #include <caml/fail.h>
 
 extern "C" {
+    // Mat functions
+
     cv::Mat *create_mat();
     void mat_copy(cv::Mat *src, cv::Mat *dst);
 
@@ -16,23 +18,34 @@ extern "C" {
     uchar *mat_data(cv::Mat *mat);
 
     cv::Mat *mat_of_bigarray(int num_dims, int *dims, char *data);
-
     void copy_mat_bigarray(cv::Mat *mat, value *v);
 
-    cv::Mat *mat_of_inputarray(cv::InputArray arr);
-    std::vector<cv::Mat> *mat_vector_of_inputarray(cv::InputArray arr);
+
+    // Vector functions
 
     void *vector_data(std::vector<char> v);
     int vector_length(std::vector<char> v);
-
     std::vector<char> *create_vector(char &arr, int length, int item_size);
 
-    bool is_mat(cv::InputArray cvdata);
-    bool is_vector_mat(cv::InputArray cvdata);
-    bool is_vector_bool(cv::InputArray cvdata);
+
+    // InputArray functions
+
+    cv::Mat *mat_of_inputarray(cv::InputArray arr);
+    std::vector<cv::Mat> *mat_vector_of_inputarray(cv::InputArray arr);
+    int inputarray_array_length(cv::InputArrayOfArrays arr);
+    cv::Mat *mat_from_inputarray_array(cv::InputArrayOfArrays arr, int index);
+
+    int inputarray_kind(cv::InputArray cvdata);
+    int mat_depth(cv::Mat *mat);
+
+    std::vector<cv::Mat> *create_vector_mat(long int length);
+    void add_vector_mat(std::vector<cv::Mat> *vec, cv::Mat &mat);
 
     cv::InputArray inputarray_of_mat(const cv::Mat &mat);
     cv::InputArray inputarray_of_mat_vector(const std::vector<cv::Mat> &mats);
+
+
+    // Scalar functions
 
     cv::Scalar *build_scalar(double w, double x, double y, double z);
     double scalar_w(cv::Scalar &scalar);
