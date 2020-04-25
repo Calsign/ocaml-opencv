@@ -11,12 +11,17 @@ import hdr_parser
 import type_manager
 
 src_files = [
-    '/usr/include/opencv4/opencv2/core/types.hpp',
-    '/usr/include/opencv4/opencv2/core/mat.hpp',
-    '/usr/include/opencv4/opencv2/core.hpp',
-    '/usr/include/opencv4/opencv2/imgproc.hpp',
-    '/usr/include/opencv4/opencv2/videoio.hpp',
-    '/usr/include/opencv4/opencv2/highgui.hpp',
+    'opencv4/opencv2/core/types.hpp',
+    'opencv4/opencv2/core/mat.hpp',
+    'opencv4/opencv2/core.hpp',
+    'opencv4/opencv2/imgproc.hpp',
+    'opencv4/opencv2/videoio.hpp',
+    'opencv4/opencv2/highgui.hpp',
+]
+
+system_include_dir_search = [
+    '/usr/include/',
+    '/usr/local/include',
 ]
 
 c_reserved = {
@@ -343,8 +348,23 @@ def sanitize_docs(docs, name=None, params=[], param_map={}, extra_unit=False):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print('No output folder specified!')
+        exit(1)
+
     dest = sys.argv[1]
     print('Output directory: {}'.format(dest))
+
+    if len(sys.argv) > 2:
+        system_include_dir_search.insert(0, sys.argv[2])
+
+    system_include_dir = None
+    for include_dir in system_include_dir_search:
+        if os.path.exists(os.path.join(include_dir, src_files[0])):
+            system_include_dir = include_dir
+            break
+
+    print('Using include dir: {}'.format(system_include_dir))
 
     # TODO enable UMat support, and make a wrapper for handling both Mat and UMat identically
     generate_umat = False
@@ -475,7 +495,7 @@ if __name__ == '__main__':
 
     decls = []
     for hname in src_files:
-        decls += parser.parse(hname, wmode=False)
+        decls += parser.parse(os.path.join(system_include_dir, hname), wmode=False)
 
     # first pass to collect classes and add types
     for decl in decls:

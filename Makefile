@@ -1,5 +1,10 @@
 BUILD=_build
 
+# By default (if left blank), the generator script searches for
+# the opencv4 headers in /usr/include/ and /usr/local/include/.
+# Set this variable if your opencv4 headers are located elsewhere.
+SYSTEM_INCLUDE_DIR=
+
 GEN=gen
 GENERATOR=generator.py
 GENERATOR_SRC=$(GENERATOR) hdr_parser.py type_manager.py incl/*
@@ -28,7 +33,7 @@ default: install
 $(GEN)/%: ${GENERATOR_SRC}
 	@echo "Running generator script"
 	mkdir -p $(GEN)
-	./$(GENERATOR) $(GEN)
+	./$(GENERATOR) $(GEN) $(SYSTEM_INCLUDE_DIR)
 
 $(BUILD)/$(SHARED_LIB): $(CPP) $(HEADERS)
 	@echo "Compiling shared library"
