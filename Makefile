@@ -25,8 +25,8 @@ NATIVE_LIB=$(GEN)/opencv.cmxa
 BYTE_LIB=$(GEN)/opencv.cma
 BUILT_LIBS=$(BUILD)/$(NATIVE_LIB) $(BUILD)/$(BYTE_LIB)
 
-TESTS=$(wildcard tests/*)
-TESTS_CLEAN=$(TESTS:=.clean)
+DEMOS=$(wildcard demos/*)
+DEMOS_CLEAN=$(DEMOS:=.clean)
 
 default: install
 
@@ -66,23 +66,21 @@ install: $(INSTALLED_SHARED_LIB) libinstall
 docs: $(BUILT_LIBS)
 	ocamlbuild $(FLAGS) -docflags -stars opencv.docdir/index.html
 
-$(TESTS):
-	@echo "Running test: $@"
+$(DEMOS): $(INSTALLED_SHARED_LIB) libinstall
+	@echo "Running demo: $@"
 #	clean first to guarantee that we pick up changes to the library
-	$(MAKE) -C $@ clean test
+	$(MAKE) -C $@ clean run
 
-test: $(INSTALLED_SHARED_LIB) libinstall $(TESTS)
-
-$(TESTS_CLEAN):
+$(DEMOS_CLEAN):
 #	this is a stupid hack
 	$(MAKE) -C $(basename $@) clean
 
-clean: $(TESTS_CLEAN)
+clean: $(DEMOS_CLEAN)
 	ocamlbuild -clean
 	rm -f $(BUILD)/$(SHARED_LIB)
 	rm -rf $(GEN)
 	sudo rm -f $(INSTALLED_SHARED_LIB)
 	ocamlfind remove $(LIB_NAME)
 
-.PHONY: default sharedlib lib libinstall install docs test clean \
-	$(TESTS) $(TESTS_CLEAN)
+.PHONY: default sharedlib lib libinstall install docs clean \
+	$(DEMOS) $(DEMOS_CLEAN)

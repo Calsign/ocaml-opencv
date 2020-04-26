@@ -1,5 +1,5 @@
 
-OUT=demo.native
+OUT=basic.native
 
 default:
 	ocamlbuild -use-ocamlfind -pkgs opencv,owl $(OUT)
@@ -10,6 +10,4 @@ run: default
 clean:
 	ocamlbuild -clean
 
-test: run
-
-.PHONY: default run clean test
+.PHONY: default run clean
