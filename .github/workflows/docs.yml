@@ -16,6 +16,7 @@ jobs:
         uses: Dovyski/setup-opencv-action@v1
         with:
           opencv-version: '4.4.0'
+          GENERATE_PKGCONFIG: ON
 
       - name: set up ocaml
         uses: avsm/setup-ocaml@v1
