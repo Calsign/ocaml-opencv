@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: install opencv
-        uses: Dovyski/setup-opencv-action@v1
+        uses: Dovyski/setup-opencv-action@19c5c74
         with:
           opencv-version: '4.4.0'
           GENERATE_PKGCONFIG: ON
@@ -23,7 +23,7 @@ jobs:
         with:
           ocaml-version: 4.10.0
 
-      - name: install ocaml dependencies
+      - name: install opam dependencies
         run: opam install ocamlbuild ctypes ctypes-foreign
 
       - name: make docs
