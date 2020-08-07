@@ -1,0 +1,38 @@
+name: docs
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: install opencv
+        uses: Dovyski/setup-opencv-action@v1
+        with:
+          opencv-version: '4.4.0'
+
+      - name: set up ocaml
+        uses: avsm/setup-ocaml@v1
+        with:
+          ocaml-version: 4.10.0
+
+      - name: install ocaml dependencies
+        run: opam install ocamlbuild ctypes ctypes-foreign
+
+      - name: make docs
+        run: eval $(opam env) && make docs
+
+      - name: deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./opencv.docdir
+          publish_branch: gh-pages
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
