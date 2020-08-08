@@ -11,7 +11,9 @@ provide a video file `demos/basic/test.mp4` as input. It also requires
 you to install the `owl` opam package.
 
 Run `make docs` to generate documentation. Open
-`opencv.docdir/index.html` to view.
+`opencv.docdir/index.html` to view. Alternatively, view the
+auto-generated docs online:
+[API](https://calsign.github.io/ocaml-opencv/).
 
 ## Goals
 
