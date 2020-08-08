@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Opencv.Rng.html">
+<link rel="next" href="Opencv.Generalized_hough.html">
+<link rel="Up" href="Opencv.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Opencv" rel="Chapter" href="Opencv.html"><title>Opencv.Algorithm</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Opencv.Rng.html" title="Opencv.Rng">Previous</a>
+&nbsp;<a class="up" href="Opencv.html" title="Opencv">Up</a>
+&nbsp;<a class="post" href="Opencv.Generalized_hough.html" title="Opencv.Generalized_hough">Next</a>
+</div>
+<h1>Module <a href="type_Opencv.Algorithm.html">Opencv.Algorithm</a></h1>
+
+<pre><span id="MODULEAlgorithm"><span class="keyword">module</span> Algorithm</span>: <code class="code">sig</code> <a href="Opencv.Algorithm.html">..</a> <code class="code">end</code></pre><hr width="100%">
+
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> </pre>
+
+
+<pre><span id="VALclear"><span class="keyword">val</span> clear</span> : <code class="type"><a href="Opencv.Algorithm.html#TYPEt">t</a> -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p>Usage: <code class="code">clear __self</code></p>
+
+<p>Clears the algorithm state</p>
+</div>
+</div>
+
+<pre><span id="VALempty"><span class="keyword">val</span> empty</span> : <code class="type"><a href="Opencv.Algorithm.html#TYPEt">t</a> -> bool</code></pre><div class="info ">
+<div class="info-desc">
+<p>Usage: <code class="code">empty __self</code></p>
+
+<p>Returns true if the Algorithm is empty (e.g. in the very beginning or after unsuccessful read</p>
+</div>
+</div>
+
+<pre><span id="VALsave"><span class="keyword">val</span> save</span> : <code class="type"><a href="Opencv.Algorithm.html#TYPEt">t</a> -> string -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p>Usage: <code class="code">save __self filename</code></p>
+
+<p>Saves the algorithm to a file.
+In order to make this method work, the derived class must implement Algorithm::write(FileStorage&amp; fs).</p>
+</div>
+</div>
+
+<pre><span id="VALget_default_name"><span class="keyword">val</span> get_default_name</span> : <code class="type"><a href="Opencv.Algorithm.html#TYPEt">t</a> -> string</code></pre><div class="info ">
+<div class="info-desc">
+<p>Usage: <code class="code">get_default_name __self</code></p>
+
+<p>Returns the algorithm string identifier.
+This string is used as top level xml/yml node tag when the object is saved to a file or string.</p>
+</div>
+</div>
+</body></html>

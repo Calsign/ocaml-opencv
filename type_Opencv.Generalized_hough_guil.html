@@ -1,0 +1,66 @@
+<html><head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Opencv" rel="Chapter" href="Opencv.html"><title>Opencv.Generalized_hough_guil</title>
+</head>
+<body>
+<code class="code"><span class="keyword">sig</span><br>
+&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;unit&nbsp;<span class="constructor">Ctypes</span>.ptr<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_template1&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?templ_center:<span class="constructor">Opencv</span>.point2i&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_template2&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?templ_center:<span class="constructor">Opencv</span>.point2i&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;detect1&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?positions:<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?votes:<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;*&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;detect2&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?positions:<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?votes:<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;*&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_canny_low_thresh&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_canny_low_thresh&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_canny_high_thresh&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_canny_high_thresh&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_min_dist&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_min_dist&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_dp&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_dp&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_max_buffer_size&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_max_buffer_size&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_xi&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_xi&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_levels&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_levels&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_angle_epsilon&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_angle_epsilon&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_min_angle&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_min_angle&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_max_angle&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_max_angle&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_angle_step&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_angle_step&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_angle_thresh&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_angle_thresh&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_min_scale&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_min_scale&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_max_scale&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_max_scale&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_scale_step&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_scale_step&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_scale_thresh&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_scale_thresh&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;set_pos_thresh&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_pos_thresh&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Generalized_hough_guil</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int<br>
+<span class="keyword">end</span></code></body></html>

@@ -1,0 +1,99 @@
+<html><head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Opencv" rel="Chapter" href="Opencv.html"><title>Opencv.Draw</title>
+</head>
+<body>
+<code class="code"><span class="keyword">sig</span><br>
+&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;draw&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t&nbsp;list&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;draw_segments&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Line_segment_detector</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;normalize&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?alpha:float&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?beta:float&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?norm_type:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?dtype:int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;?mask:<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;insert_channel&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;randu&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;randn&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;accumulate&nbsp;:&nbsp;?mask:<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;accumulate_square&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?mask:<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;accumulate_product&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?mask:<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;accumulate_weighted&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?mask:<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;watershed&nbsp;:&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;line&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?thickness:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?line_type:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?shift:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.point2i&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.point2i&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Scalar</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;arrowed_line&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?thickness:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?line_type:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?shift:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?tip_length:float&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.point2i&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.point2i&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Scalar</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;rectangle1&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?thickness:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?line_type:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?shift:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.point2i&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.point2i&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Scalar</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;rectangle2&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?thickness:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?line_type:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?shift:int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.rect2i&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Scalar</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;circle&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?thickness:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?line_type:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?shift:int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.point2i&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Scalar</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;ellipse1&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?thickness:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?line_type:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?shift:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.point2i&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.size2i&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Scalar</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;ellipse2&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?thickness:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?line_type:int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.rotated_rect&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Scalar</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;draw_marker&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?marker_type:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?marker_size:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?thickness:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?line_type:int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.point2i&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Scalar</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;fill_convex_poly&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?line_type:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?shift:int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Scalar</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;fill_poly&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?line_type:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?shift:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?offset:<span class="constructor">Opencv</span>.point2i&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;list&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Scalar</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;polylines&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?thickness:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?line_type:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?shift:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;list&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;bool&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Scalar</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;draw_contours&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?thickness:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?line_type:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?hierarchy:<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?max_level:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?offset:<span class="constructor">Opencv</span>.point2i&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Cvdata</span>.t&nbsp;list&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Scalar</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;put_text&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?thickness:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?line_type:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?bottom_left_origin:bool&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Opencv</span>.point2i&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;float&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Scalar</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Opencv</span>.<span class="constructor">Draw</span>.t<br>
+<span class="keyword">end</span></code></body></html>
