@@ -1,0 +1,9 @@
+(executable
+ (name reuse)
+ (public_name opencv.reuse)
+ (libraries owl opencv)
+)
+
+(rule
+ (alias run)
+ (action (run %{exe:reuse.exe})))

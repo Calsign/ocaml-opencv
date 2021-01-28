@@ -556,7 +556,7 @@ if __name__ == '__main__':
     opencv_h.write('#include <opencv2/core.hpp>')
     opencv_h.write('#include <opencv2/imgproc.hpp>')
     opencv_h.write()
-    opencv_h.write('#include "../glue.h"')
+    opencv_h.write('#include "glue.h"')
     opencv_h.write()
     opencv_h.write('using namespace cv;')
     opencv_h.write()
@@ -573,9 +573,8 @@ if __name__ == '__main__':
     opencv_ml.write('open Ctypes')
     opencv_ml.write('open Foreign')
     opencv_ml.write('open Ctypes_static')
-    opencv_ml.write()
-    opencv_ml.write(
-        'let lib_opencv = Dl.dlopen ~filename:"libocamlopencv.so" ~flags:[RTLD_NOW]')
+
+    opencv_ml.write_all(read_file('incl/loader.ml.incl'))
     opencv_ml.write('let foreign = foreign ~from:lib_opencv')
     opencv_ml.write(
         'let foreign_value name typ = foreign_value ~from:lib_opencv name typ')

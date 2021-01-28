@@ -1,16 +1,7 @@
 _build
 __pycache__
-gen
-*.docdir
 
-*.cmo
-*.cma
-*.cmi
-*.out
-*.cmx
-*.native
-*.byte
-
+.merlin
 *.swp
 *~
 \#*\#
@@ -20,3 +11,4 @@ gen
 
 core
 vgcore.*
+*opam
