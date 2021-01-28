@@ -12,3 +12,5 @@ run:
 
 doc:
 	dune build @doc
+
+.PHONY: build install uninstall run doc

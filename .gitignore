@@ -11,4 +11,4 @@ __pycache__
 
 core
 vgcore.*
-*opam
+*.opam
