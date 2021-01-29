@@ -1,0 +1,8 @@
+(executable
+ (name basic)
+ (libraries owl opencv)
+)
+
+(rule
+ (alias run)
+ (action (run %{exe:basic.exe})))

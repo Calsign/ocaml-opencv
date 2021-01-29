@@ -3,17 +3,22 @@
 
 ## Quick start
 
-Run `make` to install the library with ocamlfind. You must have OpenCV
+Run `make install` to install the library with dune. You must have OpenCV
 installed on your system.
 
-Run `make demos/basic` to run the demo. This demo requires you to
+Run `make run` to run the demo. This demo requires you to
 provide a video file `demos/basic/test.mp4` as input. It also requires
 you to install the `owl` opam package.
 
-Run `make docs` to generate documentation. Open
-`opencv.docdir/index.html` to view. Alternatively, view the
+Run `make doc` to generate documentation. Open
+`_build/default/_doc/_html/index.html` to view. Alternatively, view the
 auto-generated docs online:
 [API](https://calsign.github.io/ocaml-opencv/).
+
+## Pinning the dev repo
+To build and insstall the package directly from the development
+repository, use
+`opam pin add opencv https://github.com/Calsign/ocaml-opencv.git`
 
 ## Goals
 
