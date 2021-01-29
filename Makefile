@@ -8,7 +8,7 @@ uninstall:
 	dune uninstall
 
 run:
-	dune run
+	dune build @run
 
 doc:
 	dune build @doc

@@ -1,6 +1,5 @@
 (executable
  (name reuse)
- (public_name opencv.reuse)
  (libraries owl opencv)
 )
 

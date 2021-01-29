@@ -1,6 +1,5 @@
 (executable
  (name basic)
- (public_name opencv.basic)
  (libraries owl opencv)
 )
 
