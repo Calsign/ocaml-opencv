@@ -4,7 +4,7 @@
 (generate_opam_files true)
 
 (source (github Calsign/ocaml-opencv))
-;(license ISC)
+(license LGPL-2.1-only)
 (authors "William Smith")
 (maintainers "William Smith")
 
