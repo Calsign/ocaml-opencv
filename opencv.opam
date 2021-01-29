@@ -7,7 +7,7 @@ license: "LGPL-2.1-only"
 homepage: "https://github.com/Calsign/ocaml-opencv"
 bug-reports: "https://github.com/Calsign/ocaml-opencv/issues"
 depends: [
-  "ctypes-foregin"
+  "ctypes-foreign"
   "dune" {>= "2.7" & >= "2.7"}
   "owl"
   "odoc" {with-doc}
