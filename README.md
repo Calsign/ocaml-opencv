@@ -16,9 +16,9 @@ auto-generated docs online:
 [API](https://calsign.github.io/ocaml-opencv/).
 
 ## Pinning the dev repo
-To build and insstall the package directly from the development
-repository, use
-`opam pin add opencv https://github.com/Calsign/ocaml-opencv.git`
+
+To build and install the package directly from the development repository,
+use `opam pin add opencv https://github.com/Calsign/ocaml-opencv.git`.
 
 ## Goals
 
