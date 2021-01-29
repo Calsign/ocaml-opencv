@@ -26,8 +26,8 @@ jobs:
       - name: install opam dependencies
         run: opam install ocamlbuild ctypes ctypes-foreign
 
-      - name: make doc
-        run: eval $(opam env) && make docs
+      - name: make docs
+        run: eval $(opam env) && make doc
 
       - name: deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v3
