@@ -15,6 +15,11 @@ Run `make docs` to generate documentation. Open
 auto-generated docs online:
 [API](https://calsign.github.io/ocaml-opencv/).
 
+## Pinning the dev repo
+To build and insstall the package directly from the development
+repository, use
+`opam pin add opencv https://github.com/Calsign/ocaml-opencv.git`
+
 ## Goals
 
  - Provide access to the full OpenCV API through OCaml
