@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: install opencv
-        uses: Dovyski/setup-opencv-action@19c5c74
+        uses: Dovyski/setup-opencv-action@19c5c74c6da9fb31f782421fa4104484d7fd3ccb
         with:
           opencv-version: '4.5.1'
           GENERATE_PKGCONFIG: ON
