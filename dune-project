@@ -12,6 +12,6 @@
  (name opencv)
  (synopsis "OCaml bindings for OpenCV")
  (depends
-  ctypes-foregin
+  ctypes-foreign
   (dune (>= 2.7))
   owl))
