@@ -1,3 +1,5 @@
+open Foreign
+
 let lib_opencv =
   let lib = "dllopencv_stubs.so" in
   let paths =
@@ -21,3 +23,5 @@ let lib_opencv =
     | [] -> failwith ("Could not find library: " ^ lib)
   in
   load_opencv ("" :: paths)
+
+let foreign = foreign ~from:lib_opencv

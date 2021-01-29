@@ -568,27 +568,31 @@ if __name__ == '__main__':
     opencv_cpp.write('extern "C" {')
     opencv_cpp.indent()
 
-    opencv_ml.write('open Bigarray')
-    opencv_ml.write()
     opencv_ml.write('open Ctypes')
     opencv_ml.write('open Foreign')
     opencv_ml.write('open Ctypes_static')
+    opencv_ml.write('open Loader')
 
-    opencv_ml.write_all(read_file('incl/loader.ml.incl'))
-    opencv_ml.write('let foreign = foreign ~from:lib_opencv')
+
+    # Export local modules
+    opencv_ml.write('module Vector = Vector')
+    opencv_ml.write('module Scalar = Scalar')
+    opencv_ml.write('module Mat = Mat')
+    opencv_ml.write('module Cvdata = Cvdata')
+
+    # TODO: Export local modules through the mli file also
+
+    opencv_mli.write('open Ctypes_static')
+    opencv_mli.write('module Vector = Vector')
+    opencv_mli.write('module Scalar = Scalar')
+    opencv_mli.write('module Mat = Mat')
+    opencv_mli.write('module Cvdata = Cvdata')
+
     opencv_ml.write(
         'let foreign_value name typ = foreign_value ~from:lib_opencv name typ')
     opencv_ml.write()
 
-    opencv_mli.write('open Bigarray')
-    opencv_mli.write('open Ctypes')
-    opencv_mli.write()
 
-    opencv_ml.write_all(read_file('incl/vector.ml.incl'))
-    opencv_mli.write_all(read_file('incl/vector.mli.incl'))
-
-    opencv_ml.write_all(read_file('incl/scalar.ml.incl'))
-    opencv_mli.write_all(read_file('incl/scalar.mli.incl'))
 
     def write_struct(struct):
         decl_fields = '; '.join(['{} : {}'
@@ -1107,11 +1111,6 @@ if __name__ == '__main__':
         opencv_ml.unindent()
         opencv_ml.write('end')
 
-    opencv_ml.write_all(read_file('incl/mat.ml.incl'))
-    opencv_mli.write_all(read_file('incl/mat.mli.incl'))
-
-    opencv_ml.write_all(read_file('incl/cvdata.ml.incl'))
-    opencv_mli.write_all(read_file('incl/cvdata.mli.incl'))
 
     for struct in structs:
         write_struct(struct)

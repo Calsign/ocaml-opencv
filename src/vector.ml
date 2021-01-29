@@ -1,3 +1,7 @@
+open Ctypes
+open Ctypes_static
+
+let foreign = Loader.foreign
 
 let __vector_data = foreign "vector_data" (ptr void @-> returning (ptr void))
 let __vector_length = foreign "vector_length" (ptr void @-> returning int)

@@ -11,14 +11,13 @@
 
 (rule
  (targets c_flags.sexp c_library_flags.sexp)
- (action  (run ./config/discover.exe)))
+ (action  (run ../config/discover.exe)))
 
 (rule
  (targets opencv.cpp opencv.h opencv.ml opencv.mli)
  (deps
-  (:generator_src hdr_parser.py type_manager.py)
-  (:generator generator.py)
-  (glob_files incl/*.incl)
+  (:generator_src ../hdr_parser.py ../type_manager.py)
+  (:generator ../generator.py)
  )
  (action (run %{generator} .))
 )
