@@ -10,7 +10,7 @@ Run `make run` to run the demo. This demo requires you to
 provide a video file `demos/basic/test.mp4` as input. It also requires
 you to install the `owl` opam package.
 
-Run `make docs` to generate documentation. Open
+Run `make doc` to generate documentation. Open
 `_build/default/_doc/_html/index.html` to view. Alternatively, view the
 auto-generated docs online:
 [API](https://calsign.github.io/ocaml-opencv/).
