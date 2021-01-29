@@ -1,11 +1,14 @@
 build:
 	dune build
 
-install:
+install: build
 	dune install
 
 uninstall:
 	dune uninstall
+
+clean: uninstall
+	dune clean
 
 run:
 	dune build @run
