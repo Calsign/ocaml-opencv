@@ -264,7 +264,7 @@ class Vector(WrapperType):
     def ocaml_to_ctypes(self, val):
         # TODO what if the std::vector is also an output?
         # i.e. do we need to do the same kind of backpatching that we do for Mat?
-        return Conv('vector_of_list ({}) ({} |> List.map (fun x -> {})) |> from_voidp ({})'
+        return Conv('Vector.vector_of_list ({}) ({} |> List.map (fun x -> {})) |> from_voidp ({})'
                     .format(self.inner.get_ctypes_value(), val,
                             self.inner.ocaml_to_ctypes('x'),
                             self.inner.get_ctypes_value()))

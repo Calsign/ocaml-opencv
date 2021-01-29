@@ -15,8 +15,8 @@ let () =
     let contours, _ = find_contours threshed ~~`RETR_EXTERNAL ~~`CHAIN_APPROX_SIMPLE in
     let rect = bounding_rect threshed in
     let drawn = Draw.draw [
-        Draw.rectangle2 rect (color1 255.) ~thickness:2;
-        Draw.draw_contours contours (-1) (color1 0.) ~thickness:4;
+        Draw.rectangle2 rect (Scalar.color1 255.) ~thickness:2;
+        Draw.draw_contours contours (-1) (Scalar.color1 0.) ~thickness:4;
       ] blurred in
     (* let _ = calc_hist [lab_l] [0] threshed [10] [0.; 255.] in *)
     let b = 30 in
