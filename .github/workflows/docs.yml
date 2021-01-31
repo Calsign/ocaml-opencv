@@ -9,9 +9,6 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
       - name: install opencv
         uses: Dovyski/setup-opencv-action@19c5c74c6da9fb31f782421fa4104484d7fd3ccb
         with:
@@ -24,7 +21,10 @@ jobs:
           ocaml-version: 4.11.1
 
       - name: install opam dependencies
-        run: opam install ocamlbuild ctypes ctypes-foreign
+        run: opam install ocamlbuild ctypes ctypes-foreign odoc
+
+      - name: checkout
+        uses: actions/checkout@v2
 
       - name: make docs
         run: eval $(opam env) && make doc
